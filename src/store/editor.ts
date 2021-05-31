@@ -6,6 +6,7 @@ import {
   tap,
   takeUntil,
   switchMapTo,
+  switchMap,
 } from 'rxjs/operators'
 
 import { articleApi } from 'lib/api'
@@ -139,7 +140,7 @@ export const editor$ = createRxState(
     editorPublishArticle.pipe(map(() => ({ ...store.state, loading: true }))),
     editorPublishArticle.pipe(
       map(() => store.state),
-      exhaustMap(handleEditorPublish),
+      switchMap(handleEditorPublish),
       tap(({ article: { slug } }) => navigationPush.next(getArticlePath(slug))),
       switchMapTo(EMPTY),
       catchGenericAjaxError

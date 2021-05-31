@@ -1,11 +1,14 @@
 import React from 'react'
-import { Outlet } from 'react-router-dom'
 
 import { Page } from 'components/page'
 import { Row } from 'components/row'
 
 import { BannerContainer } from 'containers/banner'
 import { TagsContainer } from 'containers/tags'
+import { FeedTabsContainer } from 'containers/feed-tabs'
+import { FeedContainer } from 'containers/feed'
+
+import { renderArticlePreview } from './common/render-article-preview'
 
 export default function HomePage() {
   return (
@@ -14,7 +17,8 @@ export default function HomePage() {
       <Page>
         <Row>
           <main className="col-md-9">
-            <Outlet />
+            <FeedTabsContainer />
+            <FeedContainer>{renderArticlePreview}</FeedContainer>
           </main>
           <div className="col-md-3">
             <aside className="sidebar">

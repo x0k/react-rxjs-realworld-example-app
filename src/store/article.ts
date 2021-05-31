@@ -1,5 +1,5 @@
 import { combineLatest, merge, Subject } from 'rxjs'
-import { exhaustMap, filter, map, mapTo, takeUntil } from 'rxjs/operators'
+import { exhaustMap, filter, map, mapTo, switchMap, takeUntil } from 'rxjs/operators'
 
 import { articleApi, favoriteApi, profileApi } from 'lib/api'
 import {
@@ -49,7 +49,7 @@ export const article$ = createRxState<ArticleStates>(
   merge(
     articleLoad.pipe(mapTo({ type: LoadableDataStatus.Loading })),
     articleLoad.pipe(
-      exhaustMap((slug) => articleApi.getArticle({ slug })),
+      switchMap((slug) => articleApi.getArticle({ slug })),
       singleArticleResponseToState,
       catchGenericAjaxErrorForLoadableData
     ),

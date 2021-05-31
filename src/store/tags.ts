@@ -1,5 +1,5 @@
 import { merge, Subject } from 'rxjs'
-import { exhaustMap, filter, map, mapTo, takeUntil } from 'rxjs/operators'
+import { filter, map, mapTo, switchMap, takeUntil } from 'rxjs/operators'
 
 import { createRxState } from 'lib/store-rx-state'
 import { TagsResponse } from 'lib/conduit-client'
@@ -35,7 +35,7 @@ export const tags$ = createRxState<TagsStates>(
       mapTo({ type: LoadableDataStatus.Loading })
     ),
     tagsLoad.pipe(
-      exhaustMap(() => defaultApi.tagsGet()),
+      switchMap(() => defaultApi.tagsGet()),
       map<TagsResponse, TagsStates>(({ tags }) => ({
         type: LoadableDataStatus.IDLE,
         data: tags,

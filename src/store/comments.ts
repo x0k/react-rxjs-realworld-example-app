@@ -1,5 +1,5 @@
 import { merge, Subject } from 'rxjs'
-import { exhaustMap, map, takeUntil } from 'rxjs/operators'
+import { exhaustMap, map, switchMap, takeUntil } from 'rxjs/operators'
 
 import { createRxState } from 'lib/store-rx-state'
 import { Comment } from 'lib/conduit-client'
@@ -46,7 +46,7 @@ export const comments$ = createRxState(
   store,
   merge(
     commentsLoad.pipe(
-      exhaustMap((slug) =>
+      switchMap((slug) =>
         commentsApi.getArticleComments({ slug }).pipe(
           map(({ comments }) => ({
             ...store.state,

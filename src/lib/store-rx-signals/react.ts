@@ -3,6 +3,7 @@ import { Subject } from 'rxjs'
 
 import {
   createSignalsHooks,
+  createStartSignalHooks,
   createStopSignalHooks,
 } from './rx-signals'
 
@@ -22,6 +23,13 @@ export function useSignalsHooks<StartSignal, StopSignal>(
       }),
     [start, stop, startPayload, stopPayload]
   )
+}
+
+export function useStartSignalHooks<StartSignal>(
+  start: Subject<StartSignal>,
+  payload?: StartSignal
+) {
+  return useMemo(() => createStartSignalHooks(start, payload), [start, payload])
 }
 
 export function useStopSignalHooks<StopSignal>(

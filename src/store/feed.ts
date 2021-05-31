@@ -1,9 +1,15 @@
-import { EMPTY, merge, Subject } from 'rxjs'
-import { takeUntil, exhaustMap, map, tap, switchMapTo } from 'rxjs/operators'
+import { combineLatest, merge, Subject } from 'rxjs'
+import {
+  takeUntil,
+  exhaustMap,
+  map,
+  tap,
+  mapTo,
+  switchMap,
+} from 'rxjs/operators'
 
 import { Article, MultipleArticlesResponse } from 'lib/conduit-client'
 import { createRxState } from 'lib/store-rx-state'
-import { State } from 'lib/state'
 import { articleApi, favoriteApi } from 'lib/api'
 import { createMemoryStore } from 'lib/store'
 
@@ -12,44 +18,20 @@ import {
   ReLoadableData,
 } from 'models/re-loadable-data'
 
-import { Tag } from './tags'
-import { ProfileUsername } from './profile'
-
-export enum FeedType {
-  Global = 'global',
-  Your = 'your',
-}
-
-export type FeedTypeStates =
-  | State<
-      FeedType.Global,
-      { tag?: Tag; author?: ProfileUsername; favorited?: ProfileUsername }
-    >
-  | State<FeedType.Your>
-
-export type FeedState = ReLoadableData &
-  MultipleArticlesResponse & {
-    page: number
-    feedType: FeedTypeStates
-  }
-
-export const feedSetFeedType = new Subject<FeedTypeStates>()
-
-export const feedSetPage = new Subject<number>()
-
-export const feedLoad = new Subject()
+import { feedPage$ } from './feed-page'
+import { FeedType, feedType$ } from './feed-type'
 
 export const feedCleanup = new Subject()
 
 export const feedToggleFavorite = new Subject<Article>()
+
+export type FeedState = ReLoadableData & MultipleArticlesResponse
 
 const initialState: FeedState = {
   loading: false,
   errors: {},
   articles: [],
   articlesCount: -1,
-  page: 1,
-  feedType: { type: FeedType.Global },
 }
 
 export const feedPerPage = 10
@@ -59,19 +41,15 @@ const store = createMemoryStore(initialState)
 const catchGenericAjaxError =
   createGenericAjaxErrorCatcherForReLoadableData(store)
 
+const pageAndType$ = combineLatest([feedPage$, feedType$])
+
 export const feed$ = createRxState<FeedState>(
   store,
   merge<FeedState>(
-    feedSetFeedType.pipe(map((feedType) => ({ ...initialState, feedType }))),
-    feedSetPage.pipe(map((page) => ({ ...store.state, page }))),
-    merge(feedSetFeedType, feedSetPage).pipe(
-      tap(() => feedLoad.next()),
-      switchMapTo(EMPTY)
-    ),
-    feedLoad.pipe(map(() => ({ ...store.state, loading: true }))),
-    feedLoad.pipe(
-      map(() => store.state),
-      exhaustMap(({ feedType, page }) => {
+    feedType$.pipe(mapTo(initialState)),
+    pageAndType$.pipe(map(() => ({ ...store.state, loading: true }))),
+    pageAndType$.pipe(
+      switchMap(([page, feedType]) => {
         const payload = {
           ...feedType,
           limit: feedPerPage,
@@ -89,7 +67,6 @@ export const feed$ = createRxState<FeedState>(
       })),
       catchGenericAjaxError
     ),
-    feedSetPage.pipe(map((page) => ({ ...store.state, page }))),
     feedToggleFavorite.pipe(
       exhaustMap(({ favorited, slug }) =>
         favorited
@@ -108,5 +85,5 @@ export const feed$ = createRxState<FeedState>(
       catchGenericAjaxError
     )
   ),
-  takeUntil(feedCleanup)
+  takeUntil(feedCleanup.pipe(tap(() => store.set(initialState))))
 )

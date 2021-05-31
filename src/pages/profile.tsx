@@ -1,17 +1,20 @@
-import React, { Suspense } from 'react'
-import { Outlet, useParams } from 'react-router-dom'
-
-import { Path } from 'models/path'
+import React from 'react'
+import { useParams } from 'react-router-dom'
 
 import { Container } from 'components/container'
 import { Row } from 'components/row'
-import { NavItem } from 'components/nav-item'
-import { NavLink } from 'components/nav-link'
 
 import { UserInfoContainer } from 'containers/user-info'
-import { Spinner } from 'components/spinner'
+import { FeedContainer } from 'containers/feed'
+import { ProfileTabsContainer } from 'containers/profile-tabs'
 
-export default function ProfilePage() {
+import { renderArticlePreview } from './common/render-article-preview'
+
+export interface ProfilePageProps {
+  favorites?: boolean
+}
+
+export default function ProfilePage({ favorites }: ProfilePageProps) {
   const { username } = useParams()
   return (
     <div className="profile-page">
@@ -19,17 +22,8 @@ export default function ProfilePage() {
       <Container>
         <Row>
           <div className="col-xs-12 col-md-10 offset-md-1">
-            <ul className="nav nav-pills outline-active articles-toggle">
-              <NavItem>
-                <NavLink to={Path.ProfileArticles}>My Articles</NavLink>
-              </NavItem>
-              <NavItem>
-                <NavLink to={Path.ProfileFavorites}>Favorited Articles</NavLink>
-              </NavItem>
-            </ul>
-            <Suspense fallback={<Spinner />}>
-              <Outlet />
-            </Suspense>
+            <ProfileTabsContainer favorites={favorites} username={username} />
+            <FeedContainer>{renderArticlePreview}</FeedContainer>
           </div>
         </Row>
       </Container>

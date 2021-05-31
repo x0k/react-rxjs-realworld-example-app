@@ -2,36 +2,45 @@ import React from 'react'
 
 import { useRxState } from 'lib/store-rx-state'
 
-import { getTagPath, Path } from 'models/path'
-
 import { NavItem } from 'components/nav-item'
 import { NavLink } from 'components/nav-link'
 import { Tabs } from 'components/tabs'
 
-import { Tag } from 'store/tags'
 import { isNotUnauthorized$ } from 'store/user'
+import { FeedType, feedType$, feedTypeSet } from 'store/feed-type'
 
-export interface FeedTabsContainerProps {
-  tag?: Tag
-}
+const onSetYourFeed = () => feedTypeSet.next({ type: FeedType.Your })
 
-export function FeedTabsContainer({ tag }: FeedTabsContainerProps) {
+const onSetGlobalFeed = () => feedTypeSet.next({ type: FeedType.Global })
+
+export function FeedTabsContainer() {
   const isNotUnauthorized = useRxState(isNotUnauthorized$)
+  const feedType = useRxState(feedType$)
   return (
     <Tabs>
       {isNotUnauthorized && (
         <NavItem>
-          <NavLink to={Path.YourFeed}>Your Feed</NavLink>
+          <NavLink
+            active={feedType.type === FeedType.Your}
+            onClick={onSetYourFeed}
+          >
+            Your Feed
+          </NavLink>
         </NavItem>
       )}
       <NavItem>
-        <NavLink to={Path.GlobalFeed}>Global Feed</NavLink>
+        <NavLink
+          active={feedType.type === FeedType.Global}
+          onClick={onSetGlobalFeed}
+        >
+          Global Feed
+        </NavLink>
       </NavItem>
-      {tag && (
+      {feedType.type === FeedType.ByTag && (
         <NavItem>
-          <NavLink to={getTagPath(tag)}>
+          <NavLink active>
             <i className="ion-pound" />
-            {tag}
+            {feedType.tag}
           </NavLink>
         </NavItem>
       )}

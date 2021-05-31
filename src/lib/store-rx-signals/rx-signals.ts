@@ -21,6 +21,15 @@ export function createSignalsHooks<StartSignal, StopSignal>({
   }
 }
 
+export function createStartSignalHooks<StartSignal>(
+  start: Subject<StartSignal>,
+  payload?: StartSignal
+): RxHooks<any, any> {
+  return {
+    afterSubscribe: () => start.next(payload),
+  }
+}
+
 export function createStopSignalHooks<StopSignal>(
   stop: Subject<StopSignal>,
   payload?: StopSignal

@@ -1,5 +1,4 @@
 import React, { ElementType } from 'react'
-import { Link } from 'react-router-dom'
 import clsx from 'clsx'
 
 import { AsProp, ClassNameProp } from 'models/props'
@@ -9,11 +8,11 @@ export type TagProps<E extends ElementType> = AsProp<E> &
     outline?: boolean
   }
 
-export function Tag<E extends ElementType = typeof Link>({
+export function Tag<E extends ElementType>({
   children,
   outline,
   className,
-  as: Element = Link,
+  as: Element = 'a',
   ...rest
 }: TagProps<E>) {
   return (

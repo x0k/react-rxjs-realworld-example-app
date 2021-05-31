@@ -4,8 +4,6 @@ import { useParams } from 'react-router-dom'
 
 import { Article } from 'lib/conduit-client'
 
-import { getTagPath } from 'models/path'
-
 import { ArticleMeta } from 'components/article-meta'
 import { Banner } from 'components/banner'
 import { Container } from 'components/container'
@@ -17,6 +15,9 @@ import { Tag } from 'components/tag'
 import { ArticleContainer } from 'containers/article'
 import { ArticleActionsContainer } from 'containers/article-actions'
 import { CommentsContainer } from 'containers/comments'
+import { FeedType, feedTypeSet } from 'store/feed-type'
+import { navigationPush } from 'store/navigation'
+import { Path } from 'models/path'
 
 const markdownOptions = { forceBlock: true }
 
@@ -41,7 +42,14 @@ function renderArticle(article: Article) {
             <Markdown options={markdownOptions}>{body}</Markdown>
             <TagsList>
               {tagList.map((tag) => (
-                <Tag to={getTagPath(tag)} outline key={tag}>
+                <Tag
+                  onClick={() => {
+                    navigationPush.next(Path.Home)
+                    feedTypeSet.next({ type: FeedType.ByTag, tag })
+                  }}
+                  outline
+                  key={tag}
+                >
                   {tag}
                 </Tag>
               ))}

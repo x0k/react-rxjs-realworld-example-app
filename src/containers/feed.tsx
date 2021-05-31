@@ -1,37 +1,29 @@
 import React from 'react'
 
 import { useRxState } from 'lib/store-rx-state'
-import { useSignalsHooks } from 'lib/store-rx-signals'
+import { createStopSignalHooks } from 'lib/store-rx-signals'
+import { Article } from 'lib/conduit-client'
 
+import { ErrorsList } from 'components/errors-list'
 import { Pagination } from 'components/pagination'
 import { ArticlesList } from 'components/articles-list'
 
-import {
-  feed$,
-  FeedTypeStates,
-  feedSetFeedType,
-  feedCleanup,
-  feedSetPage,
-  feedPerPage,
-} from 'store/feed'
-import { Article } from 'lib/conduit-client'
-import { ErrorsList } from 'components/errors-list'
+import { feed$, feedCleanup, feedPerPage } from 'store/feed'
+import { feedPage$, feedPageSet } from 'store/feed-page'
 
 export interface FeedContainerProps {
-  feedType: FeedTypeStates
   children: (article: Article) => JSX.Element
 }
 
 const topMarginStyle = { marginTop: 1 }
 
-const onSetPage = (page: number) => feedSetPage.next(page)
+const onSetPage = (page: number) => feedPageSet.next(page)
 
-export function FeedContainer({ feedType, children }: FeedContainerProps) {
-  const hooks = useSignalsHooks(feedSetFeedType, feedCleanup, feedType)
-  const { errors, articles, articlesCount, loading, page } = useRxState(
-    feed$,
-    hooks
-  )
+const hooks = createStopSignalHooks(feedCleanup)
+
+export function FeedContainer({ children }: FeedContainerProps) {
+  const page = useRxState(feedPage$)
+  const { errors, articles, articlesCount, loading } = useRxState(feed$, hooks)
   if (Object.keys(errors).length > 0) {
     return <ErrorsList errors={errors} />
   }

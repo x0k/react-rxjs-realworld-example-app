@@ -1,11 +1,17 @@
-import React, { FunctionComponent } from 'react'
-import { NavLink as Link, NavLinkProps } from 'react-router-dom'
+import React, { AnchorHTMLAttributes, FunctionComponent } from 'react'
+import clsx from 'clsx'
+
+export type NavLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
+  active?: boolean
+}
 
 export const NavLink: FunctionComponent<NavLinkProps> = ({
   children,
+  className,
+  active,
   ...rest
 }) => (
-  <Link {...rest} className="nav-link">
+  <a {...rest} className={clsx('nav-link', className, { active })}>
     {children}
-  </Link>
+  </a>
 )
