@@ -1,6 +1,5 @@
 import { Subject, combineLatest, merge, Observable, of, EMPTY } from 'rxjs'
 import {
-  catchError,
   exhaustMap,
   filter,
   map,
@@ -17,12 +16,16 @@ import { isSpecificState } from 'lib/state'
 import { injectStore } from 'lib/store-rx-inject'
 import { createMemoryStore } from 'lib/store'
 
-import { DataStates, DataStatus } from 'models/data'
+import {
+  catchGenericAjaxErrorForLoadableData,
+  LoadableDataStates,
+  LoadableDataStatus,
+} from 'models/loadable-data'
 import { GenericAjaxError } from 'models/errors'
 
 import { user$, UserStatus } from './user'
 
-export type ProfileStates = DataStates<Profile, Error>
+export type ProfileStates = LoadableDataStates<Profile, GenericAjaxError>
 
 export type ProfileUsername = Profile['username']
 
@@ -37,28 +40,26 @@ const profileResponseToState = (
 ): Observable<ProfileStates> =>
   observable.pipe(
     map<ProfileResponse, ProfileStates>(({ profile }) => ({
-      type: DataStatus.IDLE,
+      type: LoadableDataStatus.IDLE,
       data: profile,
     })),
-    catchError((error: GenericAjaxError, caught) =>
-      merge(of<ProfileStates>({ type: DataStatus.Error, error }), caught)
-    )
+    catchGenericAjaxErrorForLoadableData
   )
 
 const store = createMemoryStore<ProfileStates>({
-  type: DataStatus.Init,
+  type: LoadableDataStatus.Init,
 })
 
 export const profile$ = createRxState<ProfileStates>(
   store,
   merge(
-    profileLoad.pipe(mapTo({ type: DataStatus.Loading })),
+    profileLoad.pipe(mapTo({ type: LoadableDataStatus.Loading })),
     profileLoad.pipe(
       withLatestFrom(user$),
       switchMap(([username, user]) =>
         user.type === UserStatus.Authorized && user.user.username === username
           ? of<ProfileStates>({
-              type: DataStatus.IDLE,
+              type: LoadableDataStatus.IDLE,
               data: { ...user.user, following: false },
             })
           : EMPTY
@@ -69,7 +70,7 @@ export const profile$ = createRxState<ProfileStates>(
       profileResponseToState
     ),
     profileToggleFollowing.pipe(
-      injectStore(store, filter(isSpecificState(DataStatus.IDLE))),
+      injectStore(store, filter(isSpecificState(LoadableDataStatus.IDLE))),
       exhaustMap(([username, state]) =>
         state.data.following
           ? profileApi.unfollowUserByUsername({ username })
@@ -85,7 +86,7 @@ export const isCurrentUser$ = combineLatest([user$, profile$]).pipe(
   map(
     ([user, profile]) =>
       user.type === UserStatus.Authorized &&
-      profile.type === DataStatus.IDLE &&
+      profile.type === LoadableDataStatus.IDLE &&
       user.user.username === profile.data.username
   )
 )

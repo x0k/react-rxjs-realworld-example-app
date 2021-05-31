@@ -15,6 +15,7 @@ import {
   feedPerPage,
 } from 'store/feed'
 import { Article } from 'lib/conduit-client'
+import { ErrorsList } from 'components/errors-list'
 
 export interface FeedContainerProps {
   feedType: FeedTypeStates
@@ -27,12 +28,12 @@ const onSetPage = (page: number) => feedSetPage.next(page)
 
 export function FeedContainer({ feedType, children }: FeedContainerProps) {
   const hooks = useSignalsHooks(feedSetFeedType, feedCleanup, feedType)
-  const { error, articles, articlesCount, loading, page } = useRxState(
+  const { errors, articles, articlesCount, loading, page } = useRxState(
     feed$,
     hooks
   )
-  if (error) {
-    return <p>{error.message}</p>
+  if (Object.keys(errors).length > 0) {
+    return <ErrorsList errors={errors} />
   }
   return (
     <>

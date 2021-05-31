@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { useRxState } from 'lib/store-rx-state'
 import { foldState } from 'lib/state'
 
-import { DataStatus } from 'models/data'
+import { LoadableDataStatus } from 'models/loadable-data'
 
 import { Container } from 'components/container'
 import { Row } from 'components/row'
@@ -29,10 +29,10 @@ export function UserInfoContainer({ username }: UserInfoContainerProps) {
   const hooks = useSignalsHooks(profileLoad, profileCleanup, username)
   const profileState = useRxState(profile$, hooks)
   const isCurrentUser = useRxState(isCurrentUser$)
-  return foldState<DataStatus, ProfileStates, JSX.Element | null>({
-    [DataStatus.Init]: () => null,
-    [DataStatus.Loading]: () => null,
-    [DataStatus.IDLE]: ({ data: { bio, image, username, following } }) => (
+  return foldState<LoadableDataStatus, ProfileStates, JSX.Element | null>({
+    [LoadableDataStatus.Init]: () => null,
+    [LoadableDataStatus.Loading]: () => null,
+    [LoadableDataStatus.IDLE]: ({ data: { bio, image, username, following } }) => (
       <div className="user-info">
         <Container>
           <Row>
@@ -64,6 +64,6 @@ export function UserInfoContainer({ username }: UserInfoContainerProps) {
         </Container>
       </div>
     ),
-    [DataStatus.Error]: ({ error }) => <p>{error.message}</p>,
+    [LoadableDataStatus.Error]: ({ error }) => <p>{error.message}</p>,
   })(profileState)
 }

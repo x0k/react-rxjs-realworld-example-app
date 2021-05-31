@@ -1,12 +1,5 @@
-import { combineLatest, merge, Observable, of, Subject } from 'rxjs'
-import {
-  catchError,
-  exhaustMap,
-  filter,
-  map,
-  mapTo,
-  takeUntil,
-} from 'rxjs/operators'
+import { combineLatest, merge, Subject } from 'rxjs'
+import { exhaustMap, filter, map, mapTo, takeUntil } from 'rxjs/operators'
 
 import { articleApi, favoriteApi, profileApi } from 'lib/api'
 import {
@@ -18,13 +11,17 @@ import { createRxState } from 'lib/store-rx-state'
 import { isSpecificState } from 'lib/state'
 import { createMemoryStore } from 'lib/store'
 
-import { DataStates, DataStatus } from 'models/data'
+import {
+  catchGenericAjaxErrorForLoadableData,
+  LoadableDataStates,
+  LoadableDataStatus,
+} from 'models/loadable-data'
 import { GenericAjaxError } from 'models/errors'
 import { ArticleSlug } from 'models/article'
 
 import { user$, UserStatus } from './user'
 
-export type ArticleStates = DataStates<Article, GenericAjaxError>
+export type ArticleStates = LoadableDataStates<Article, GenericAjaxError>
 
 export const articleLoad = new Subject<ArticleSlug>()
 
@@ -38,39 +35,34 @@ export const articleToggleFavorite = new Subject()
 
 const singleArticleResponseToState = map<SingleArticleResponse, ArticleStates>(
   ({ article }) => ({
-    type: DataStatus.IDLE,
+    type: LoadableDataStatus.IDLE,
     data: article,
   })
 )
 
-const catchGenericAjaxError = catchError<
-  ArticleStates,
-  Observable<ArticleStates>
->((error: GenericAjaxError, caught) =>
-  merge(caught, of<ArticleStates>({ type: DataStatus.Error, error }))
-)
-
-const store = createMemoryStore<ArticleStates>({ type: DataStatus.Init })
+const store = createMemoryStore<ArticleStates>({
+  type: LoadableDataStatus.Init,
+})
 
 export const article$ = createRxState<ArticleStates>(
   store,
   merge(
-    articleLoad.pipe(mapTo({ type: DataStatus.Loading })),
+    articleLoad.pipe(mapTo({ type: LoadableDataStatus.Loading })),
     articleLoad.pipe(
       exhaustMap((slug) => articleApi.getArticle({ slug })),
       singleArticleResponseToState,
-      catchGenericAjaxError
+      catchGenericAjaxErrorForLoadableData
     ),
     articleDelete.pipe(
       map(() => store.state),
-      filter(isSpecificState(DataStatus.IDLE)),
+      filter(isSpecificState(LoadableDataStatus.IDLE)),
       exhaustMap(({ data }) => articleApi.deleteArticle(data)),
-      mapTo<void, ArticleStates>({ type: DataStatus.Init }),
-      catchGenericAjaxError
+      mapTo<void, ArticleStates>({ type: LoadableDataStatus.Init }),
+      catchGenericAjaxErrorForLoadableData
     ),
     articleToggleFollow.pipe(
       map(() => store.state),
-      filter(isSpecificState(DataStatus.IDLE)),
+      filter(isSpecificState(LoadableDataStatus.IDLE)),
       exhaustMap(({ data }) => {
         const {
           author: { following, username },
@@ -81,23 +73,23 @@ export const article$ = createRxState<ArticleStates>(
             : profileApi.followUserByUsername({ username })
         ).pipe(
           map<ProfileResponse, ArticleStates>(({ profile }) => ({
-            type: DataStatus.IDLE,
+            type: LoadableDataStatus.IDLE,
             data: { ...data, author: profile },
           }))
         )
       }),
-      catchGenericAjaxError
+      catchGenericAjaxErrorForLoadableData
     ),
     articleToggleFavorite.pipe(
       map(() => store.state),
-      filter(isSpecificState(DataStatus.IDLE)),
+      filter(isSpecificState(LoadableDataStatus.IDLE)),
       exhaustMap(({ data: { favorited, slug } }) => {
         return favorited
           ? favoriteApi.deleteArticleFavorite({ slug })
           : favoriteApi.createArticleFavorite({ slug })
       }),
       singleArticleResponseToState,
-      catchGenericAjaxError
+      catchGenericAjaxErrorForLoadableData
     )
   ),
   takeUntil(articleCleanup)
@@ -106,7 +98,7 @@ export const article$ = createRxState<ArticleStates>(
 export const isAuthor$ = combineLatest([article$, user$]).pipe(
   map(
     ([article, user]) =>
-      article.type === DataStatus.IDLE &&
+      article.type === LoadableDataStatus.IDLE &&
       user.type === UserStatus.Authorized &&
       article.data.author.username === user.user.username
   )

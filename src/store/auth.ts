@@ -1,6 +1,5 @@
-import { merge, of, Subject } from 'rxjs'
+import { merge, Subject } from 'rxjs'
 import {
-  catchError,
   exhaustMap,
   map,
   mapTo,
@@ -16,16 +15,16 @@ import { ChangeFieldEventPayload } from 'lib/event'
 import { isLocationWithFromState } from 'lib/router'
 import { createMemoryStore } from 'lib/store'
 
-import { Errors, GenericAjaxError } from 'models/errors'
 import { Path } from 'models/path'
+import {
+  createGenericAjaxErrorCatcherForReLoadableData,
+  ReLoadableData,
+} from 'models/re-loadable-data'
 
 import { userSet } from './user'
 import { navigation$, navigationPush } from './navigation'
 
-export type AuthState = LoginUser & {
-  loading: boolean
-  errors: Errors
-}
+export type AuthState = LoginUser & ReLoadableData
 
 export const authChangeField = new Subject<ChangeFieldEventPayload<LoginUser>>()
 
@@ -41,6 +40,9 @@ const initialState: AuthState = {
 }
 
 const store = createMemoryStore(initialState)
+
+const catchGenericAjaxError =
+  createGenericAjaxErrorCatcherForReLoadableData(store)
 
 export const auth$ = createRxState(
   store,
@@ -66,16 +68,7 @@ export const auth$ = createRxState(
         )
       ),
       mapTo(initialState),
-      catchError((error: GenericAjaxError, caught) =>
-        merge(
-          caught,
-          of({
-            ...store.state,
-            errors: error.response.errors,
-            loading: false,
-          })
-        )
-      )
+      catchGenericAjaxError
     )
   ),
   takeUntil(authCleanup)

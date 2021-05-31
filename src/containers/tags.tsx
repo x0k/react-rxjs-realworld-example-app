@@ -6,16 +6,16 @@ import { foldState } from 'lib/state'
 import { createSignalsHooks } from 'lib/store-rx-signals'
 
 import { getTagPath } from 'models/path'
-import { DataStatus } from 'models/data'
+import { LoadableDataStatus } from 'models/loadable-data'
 
 import { TagsList } from 'components/tags-list'
 
 import { tags$, tagsCleanup, tagsLoad, TagsStates } from 'store/tags'
 
-const foldTagsState = foldState<DataStatus, TagsStates, JSX.Element | null>({
-  [DataStatus.Init]: () => null,
-  [DataStatus.Loading]: () => <p>Loading tags...</p>,
-  [DataStatus.IDLE]: ({ data }) => (
+const foldTagsState = foldState<LoadableDataStatus, TagsStates, JSX.Element | null>({
+  [LoadableDataStatus.Init]: () => null,
+  [LoadableDataStatus.Loading]: () => <p>Loading tags...</p>,
+  [LoadableDataStatus.IDLE]: ({ data }) => (
     <TagsList>
       {data.map((tag) => (
         <Link key={tag} className="tag-default tag-pill" to={getTagPath(tag)}>
@@ -24,7 +24,7 @@ const foldTagsState = foldState<DataStatus, TagsStates, JSX.Element | null>({
       ))}
     </TagsList>
   ),
-  [DataStatus.Error]: ({ error }) => <p>{error.message}</p>,
+  [LoadableDataStatus.Error]: ({ error }) => <p>{error.message}</p>,
 })
 
 const hooks = createSignalsHooks({ start: tagsLoad, stop: tagsCleanup })

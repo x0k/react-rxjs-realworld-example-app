@@ -1,5 +1,5 @@
-import { merge, Observable, of, Subject } from 'rxjs'
-import { catchError, exhaustMap, map, takeUntil } from 'rxjs/operators'
+import { merge, Subject } from 'rxjs'
+import { exhaustMap, map, takeUntil } from 'rxjs/operators'
 
 import { createRxState } from 'lib/store-rx-state'
 import { Comment } from 'lib/conduit-client'
@@ -7,17 +7,20 @@ import { commentsApi } from 'lib/api'
 import { injectStore } from 'lib/store-rx-inject'
 import { createMemoryStore } from 'lib/store'
 
-import { Errors, GenericAjaxError } from 'models/errors'
 import { ArticleSlug } from 'models/article'
+import {
+  createGenericAjaxErrorCatcherForReLoadableData,
+  ReLoadableData,
+} from 'models/re-loadable-data'
 
-export interface CommentsState {
-  errors: Errors
+export type CommentsState = ReLoadableData & {
   comment: string
   comments: Comment[]
   slug: ArticleSlug
 }
 
 const initialState: CommentsState = {
+  loading: false,
   errors: {},
   comment: '',
   comments: [],
@@ -36,18 +39,8 @@ export const commentsDeleteComment = new Subject<Comment>()
 
 const store = createMemoryStore<CommentsState>(initialState)
 
-const catchGenericAjaxError = catchError<
-  CommentsState,
-  Observable<CommentsState>
->((error: GenericAjaxError, caught) =>
-  merge(
-    caught,
-    of<CommentsState>({
-      ...store.state,
-      errors: error.response?.errors ?? { error: [error.message] },
-    })
-  )
-)
+const catchGenericAjaxError =
+  createGenericAjaxErrorCatcherForReLoadableData(store)
 
 export const comments$ = createRxState(
   store,

@@ -1,5 +1,5 @@
-import { EMPTY, merge, Observable, of, Subject } from 'rxjs'
-import { takeUntil, catchError, exhaustMap, map, tap, switchMapTo } from 'rxjs/operators'
+import { EMPTY, merge, Subject } from 'rxjs'
+import { takeUntil, exhaustMap, map, tap, switchMapTo } from 'rxjs/operators'
 
 import { Article, MultipleArticlesResponse } from 'lib/conduit-client'
 import { createRxState } from 'lib/store-rx-state'
@@ -7,7 +7,10 @@ import { State } from 'lib/state'
 import { articleApi, favoriteApi } from 'lib/api'
 import { createMemoryStore } from 'lib/store'
 
-import { GenericAjaxError } from 'models/errors'
+import {
+  createGenericAjaxErrorCatcherForReLoadableData,
+  ReLoadableData,
+} from 'models/re-loadable-data'
 
 import { Tag } from './tags'
 import { ProfileUsername } from './profile'
@@ -24,12 +27,11 @@ export type FeedTypeStates =
     >
   | State<FeedType.Your>
 
-export type FeedState = MultipleArticlesResponse & {
-  page: number
-  loading: boolean
-  error?: GenericAjaxError
-  feedType: FeedTypeStates
-}
+export type FeedState = ReLoadableData &
+  MultipleArticlesResponse & {
+    page: number
+    feedType: FeedTypeStates
+  }
 
 export const feedSetFeedType = new Subject<FeedTypeStates>()
 
@@ -43,6 +45,7 @@ export const feedToggleFavorite = new Subject<Article>()
 
 const initialState: FeedState = {
   loading: false,
+  errors: {},
   articles: [],
   articlesCount: -1,
   page: 1,
@@ -53,10 +56,8 @@ export const feedPerPage = 10
 
 const store = createMemoryStore(initialState)
 
-const catchGenericAjaxError = catchError<FeedState, Observable<FeedState>>(
-  (error: GenericAjaxError, caught) =>
-    merge(caught, of<FeedState>({ ...store.state, error, loading: false }))
-)
+const catchGenericAjaxError =
+  createGenericAjaxErrorCatcherForReLoadableData(store)
 
 export const feed$ = createRxState<FeedState>(
   store,
@@ -84,7 +85,7 @@ export const feed$ = createRxState<FeedState>(
         ...store.state,
         ...data,
         loading: false,
-        error: undefined,
+        errors: {},
       })),
       catchGenericAjaxError
     ),

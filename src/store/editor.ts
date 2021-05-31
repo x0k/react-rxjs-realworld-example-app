@@ -1,6 +1,5 @@
-import { EMPTY, merge, Observable, of, Subject } from 'rxjs'
+import { EMPTY, merge, Observable, Subject } from 'rxjs'
 import {
-  catchError,
   exhaustMap,
   filter,
   map,
@@ -22,8 +21,11 @@ import { isTruly } from 'lib/types'
 import { createMemoryStore } from 'lib/store'
 
 import { getArticlePath } from 'models/path'
-import { Errors, GenericAjaxError } from 'models/errors'
 import { ArticleTag, ArticleSlug } from 'models/article'
+import {
+  createGenericAjaxErrorCatcherForReLoadableData,
+  ReLoadableData,
+} from 'models/re-loadable-data'
 
 import { navigationPush } from './navigation'
 
@@ -32,14 +34,12 @@ export enum EditorStatus {
   Update = 'update',
 }
 
-export type EditorState = {
+export type EditorState = ReLoadableData & {
   tag: ArticleTag
-  loading: boolean
-  errors: Errors
 } & (
-  | State<EditorStatus.Create, NewArticle>
-  | State<EditorStatus.Update, UpdateArticle & { slug: ArticleSlug }>
-)
+    | State<EditorStatus.Create, NewArticle>
+    | State<EditorStatus.Update, UpdateArticle & { slug: ArticleSlug }>
+  )
 
 export type EditorChangeFieldEventPayload = ChangeFieldEventPayload<
   NewArticle & { tag: ArticleTag }
@@ -88,17 +88,8 @@ const handleEditorPublish = partiallyFoldState<
 
 const store = createMemoryStore<EditorState>(initialState)
 
-const catchGenericAjaxError = catchError<EditorState, Observable<EditorState>>(
-  (error: GenericAjaxError, caught) =>
-    merge(
-      caught,
-      of({
-        ...store.state,
-        loading: false,
-        errors: error.response?.errors ?? { error: [error.message] },
-      })
-    )
-)
+const catchGenericAjaxError =
+  createGenericAjaxErrorCatcherForReLoadableData(store)
 
 export const editor$ = createRxState(
   store,

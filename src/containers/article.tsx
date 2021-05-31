@@ -5,7 +5,7 @@ import { useRxState } from 'lib/store-rx-state'
 import { foldState } from 'lib/state'
 import { useSignalsHooks } from 'lib/store-rx-signals'
 
-import { DataStatus } from 'models/data'
+import { LoadableDataStatus } from 'models/loadable-data'
 import { ArticleSlug } from 'models/article'
 
 import {
@@ -25,11 +25,11 @@ export function ArticleContainer({ children, slug }: ArticleContainerProps) {
   const articleState = useRxState(article$, hooks)
   return useMemo(
     () =>
-      foldState<DataStatus, ArticleStates, JSX.Element | null>({
-        [DataStatus.Init]: () => null,
-        [DataStatus.Loading]: () => <p>Loading article...</p>,
-        [DataStatus.IDLE]: ({ data }) => children(data),
-        [DataStatus.Error]: ({ error }) => <p>{error.message}</p>,
+      foldState<LoadableDataStatus, ArticleStates, JSX.Element | null>({
+        [LoadableDataStatus.Init]: () => null,
+        [LoadableDataStatus.Loading]: () => <p>Loading article...</p>,
+        [LoadableDataStatus.IDLE]: ({ data }) => children(data),
+        [LoadableDataStatus.Error]: ({ error }) => <p>{error.message}</p>,
       })(articleState),
     [articleState, children]
   )

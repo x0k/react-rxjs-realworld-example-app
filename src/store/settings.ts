@@ -1,12 +1,5 @@
-import { merge, of, Subject } from 'rxjs'
-import {
-  catchError,
-  exhaustMap,
-  filter,
-  map,
-  tap,
-  takeUntil,
-} from 'rxjs/operators'
+import { merge, Subject } from 'rxjs'
+import { exhaustMap, filter, map, tap, takeUntil } from 'rxjs/operators'
 
 import { UpdateUser } from 'lib/conduit-client'
 import { ChangeFieldEventPayload } from 'lib/event'
@@ -16,14 +9,14 @@ import { isSpecificState } from 'lib/state'
 import { omitFalsyProps } from 'lib/types'
 import { createMemoryStore } from 'lib/store'
 
-import { Errors, GenericAjaxError } from 'models/errors'
+import {
+  createGenericAjaxErrorCatcherForReLoadableData,
+  ReLoadableData,
+} from 'models/re-loadable-data'
 
 import { userSet, user$, UserStatus } from './user'
 
-export type SettingsState = UpdateUser & {
-  loading: boolean
-  errors: Errors
-}
+export type SettingsState = UpdateUser & ReLoadableData
 
 export const settingsChangeField = new Subject<
   ChangeFieldEventPayload<UpdateUser>
@@ -43,6 +36,9 @@ const store = createMemoryStore<SettingsState>({
   password: '',
 })
 
+const catchGenericAjaxError =
+  createGenericAjaxErrorCatcherForReLoadableData(store)
+
 export const settings$ = createRxState<SettingsState>(
   store,
   merge(
@@ -58,16 +54,7 @@ export const settings$ = createRxState<SettingsState>(
       ),
       tap(({ user }) => userSet.next(user)),
       map(() => ({ ...store.state, loading: false, errors: {} })),
-      catchError((error: GenericAjaxError, caught) =>
-        merge(
-          caught,
-          of<SettingsState>({
-            ...store.state,
-            loading: false,
-            errors: error.response.errors,
-          })
-        )
-      )
+      catchGenericAjaxError
     ),
     user$.pipe(
       filter(isSpecificState(UserStatus.Authorized)),

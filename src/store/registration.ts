@@ -1,6 +1,5 @@
-import { Subject, merge, of } from 'rxjs'
+import { Subject, merge } from 'rxjs'
 import {
-  catchError,
   exhaustMap,
   map,
   mapTo,
@@ -16,16 +15,16 @@ import { ChangeFieldEventPayload } from 'lib/event'
 import { isLocationWithFromState } from 'lib/router'
 import { createMemoryStore } from 'lib/store'
 
-import { Errors, GenericAjaxError } from 'models/errors'
+import {
+  createGenericAjaxErrorCatcherForReLoadableData,
+  ReLoadableData,
+} from 'models/re-loadable-data'
 import { Path } from 'models/path'
 
 import { userSet } from './user'
 import { navigation$, navigationPush } from './navigation'
 
-export type RegistrationState = NewUser & {
-  loading: boolean
-  errors: Errors
-}
+export type RegistrationState = NewUser & ReLoadableData
 
 export const registrationChangeField = new Subject<
   ChangeFieldEventPayload<NewUser>
@@ -44,6 +43,9 @@ const initialState: RegistrationState = {
 }
 
 const store = createMemoryStore(initialState)
+
+const catchGenericAjaxError =
+  createGenericAjaxErrorCatcherForReLoadableData(store)
 
 export const registration$ = createRxState(
   store,
@@ -64,16 +66,7 @@ export const registration$ = createRxState(
         )
       ),
       mapTo(initialState),
-      catchError((error: GenericAjaxError, caught) =>
-        merge(
-          caught,
-          of({
-            ...store.state,
-            loading: false,
-            errors: error.response.errors,
-          })
-        )
-      )
+      catchGenericAjaxError
     )
   ),
   takeUntil(registrationCleanup)
