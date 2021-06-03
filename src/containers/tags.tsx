@@ -5,12 +5,12 @@ import { foldState } from 'lib/state'
 import { createSignalsHooks } from 'lib/store-rx-signals'
 
 import { LoadableDataStatus } from 'models/loadable-data'
+import { getFeedByTagPath } from 'models/path'
 
 import { TagsList } from 'components/tags-list'
 import { Tag } from 'components/tag'
 
 import { tags$, tagsCleanup, tagsLoad, TagsStates } from 'store/tags'
-import { FeedType, feedTypeSet } from 'store/feed-type'
 
 const foldTagsState = foldState<
   LoadableDataStatus,
@@ -22,10 +22,7 @@ const foldTagsState = foldState<
   [LoadableDataStatus.IDLE]: ({ data }) => (
     <TagsList>
       {data.map((tag) => (
-        <Tag
-          as="li"
-          onClick={() => feedTypeSet.next({ type: FeedType.ByTag, tag })}
-        >
+        <Tag to={getFeedByTagPath(tag)} key={tag}>
           {tag}
         </Tag>
       ))}

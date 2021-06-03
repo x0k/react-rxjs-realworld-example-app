@@ -1,8 +1,9 @@
-import { ArticleSlug } from './article'
+import { ArticleSlug, ArticleTag } from './article'
+import { FeedByType, ProfileFeedByType } from './feed'
 import { ProfileUsername } from './profile'
 
 export enum Path {
-  Home = '/',
+  Feed = '/',
   Login = '/login',
   Registration = '/registration',
   Settings = '/settings',
@@ -18,5 +19,15 @@ export enum Path {
 export const getArticlePath = (slug: ArticleSlug) =>
   Path.Article.replace(':slug', slug)
 
-export const getUserPath = (username: ProfileUsername) =>
+export const getProfilePath = (username: ProfileUsername) =>
   Path.Profile.replace(':username', username)
+
+export const getFeedByTypePath = (type: FeedByType) =>
+  `${Path.Feed}?type=${type}`
+
+export const getFeedByTagPath = (tag: ArticleTag) => `${Path.Feed}?tag=${tag}`
+
+export const getProfileFeedByTypePath = (
+  username: ProfileUsername,
+  type: ProfileFeedByType
+) => `${getProfilePath(username)}?type=${type}`

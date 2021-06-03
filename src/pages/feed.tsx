@@ -1,4 +1,7 @@
-import React from 'react'
+import React, { useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
+
+import { FeedByType } from 'models/feed'
 
 import { Page } from 'components/page'
 import { Row } from 'components/row'
@@ -10,14 +13,17 @@ import { FeedContainer } from 'containers/feed'
 
 import { renderArticlePreview } from './common/render-article-preview'
 
-export default function HomePage() {
+export default function FeedPage() {
+  const [params] = useSearchParams()
+  const tag = useMemo(() => params.get('tag') ?? undefined, [params])
+  const type = useMemo(() => params.get('type') ?? undefined, [params])
   return (
     <div className="home-page">
       <BannerContainer />
       <Page>
         <Row>
           <main className="col-md-9">
-            <FeedTabsContainer />
+            <FeedTabsContainer tag={tag} type={type as FeedByType} />
             <FeedContainer>{renderArticlePreview}</FeedContainer>
           </main>
           <div className="col-md-3">

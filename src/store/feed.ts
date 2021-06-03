@@ -17,9 +17,10 @@ import {
   createGenericAjaxErrorCatcherForReLoadableData,
   ReLoadableData,
 } from 'models/re-loadable-data'
+import { FeedType } from 'models/feed'
 
 import { feedPage$ } from './feed-page'
-import { FeedType, feedType$ } from './feed-type'
+import { feedType$ } from './feed-type'
 
 export const feedCleanup = new Subject()
 

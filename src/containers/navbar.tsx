@@ -3,7 +3,7 @@ import React, { useMemo } from 'react'
 import { useRxState } from 'lib/store-rx-state'
 import { foldState } from 'lib/state'
 
-import { getUserPath, Path } from 'models/path'
+import { getProfilePath, Path } from 'models/path'
 
 import { NavBar } from 'components/navbar'
 import { NavItem } from 'components/nav-item'
@@ -17,22 +17,24 @@ const foldUserState = foldState<UserStatus, UserStates, JSX.Element | null>({
   [UserStatus.Authorized]: ({ user }) => (
     <NavBar>
       <NavItem>
-        <NavLink href={Path.Home}>Home</NavLink>
+        <NavLink to={Path.Feed} end>
+          Home
+        </NavLink>
       </NavItem>
       <NavItem>
-        <NavLink href={Path.Editor}>
+        <NavLink to={Path.Editor}>
           <i className="ion-compose" />
           &nbsp;New Article
         </NavLink>
       </NavItem>
       <NavItem>
-        <NavLink href={Path.Settings}>
+        <NavLink to={Path.Settings}>
           <i className="ion-gear-a" />
           &nbsp;Settings
         </NavLink>
       </NavItem>
       <NavItem>
-        <NavLink href={getUserPath(user.username)}>
+        <NavLink to={getProfilePath(user.username)}>
           {user.image && (
             <img alt={user.username} className="user-pic" src={user.image} />
           )}
@@ -44,13 +46,15 @@ const foldUserState = foldState<UserStatus, UserStates, JSX.Element | null>({
   [UserStatus.Unauthorized]: () => (
     <NavBar>
       <NavItem>
-        <NavLink href={Path.Home}>Home</NavLink>
+        <NavLink to={Path.Feed} end>
+          Home
+        </NavLink>
       </NavItem>
       <NavItem>
-        <NavLink href={Path.Login}>Sign In</NavLink>
+        <NavLink to={Path.Login}>Sign In</NavLink>
       </NavItem>
       <NavItem>
-        <NavLink href={Path.Registration}>Sign Up</NavLink>
+        <NavLink to={Path.Registration}>Sign Up</NavLink>
       </NavItem>
     </NavBar>
   ),

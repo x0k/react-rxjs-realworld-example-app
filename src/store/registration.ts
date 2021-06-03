@@ -22,7 +22,7 @@ import {
 import { Path } from 'models/path'
 
 import { userSet } from './user'
-import { navigation$, navigationPush } from './navigation'
+import { navigation$, navigationNavigate } from './navigation'
 
 export type RegistrationState = NewUser & ReLoadableData
 
@@ -61,8 +61,8 @@ export const registration$ = createRxState(
       tap(({ user }) => userSet.next(user)),
       withLatestFrom(navigation$),
       tap(([, { location }]) =>
-        navigationPush.next(
-          isLocationWithFromState(location) ? location.state.from : Path.Home
+        navigationNavigate.next(
+          isLocationWithFromState(location) ? location.state.from : Path.Feed
         )
       ),
       mapTo(initialState),

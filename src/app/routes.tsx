@@ -10,7 +10,7 @@ import { Spinner } from 'components/spinner'
 
 import { isNotUnauthorized$ } from 'store/user'
 
-const HomePage = lazy(() => import('pages/home'))
+const FeedPage = lazy(() => import('pages/feed'))
 const NotMachPage = lazy(() => import('pages/not-match'))
 const LoginPage = lazy(() => import('pages/login'))
 const RegistrationPage = lazy(() => import('pages/registration'))
@@ -23,25 +23,25 @@ const ArticlePage = lazy(() => import('pages/article'))
 
 const toLogin = { to: Path.Login }
 
-const toHome = { to: Path.Home, replace: true }
+const toFeed = { to: Path.Feed, replace: true }
 
 export function AppRoutes() {
   const isNotUnauthorized = useRxState(isNotUnauthorized$)
   return (
     <Suspense fallback={<Spinner />}>
       <Routes>
-        <Route path={Path.Home} element={<HomePage />} />
+        <Route path={Path.Feed} element={<FeedPage />} />
         <PrivateRoute
           open={!isNotUnauthorized}
           path={Path.Login}
           element={<LoginPage />}
-          redirect={toHome}
+          redirect={toFeed}
         />
         <PrivateRoute
           open={!isNotUnauthorized}
           path={Path.Registration}
           element={<RegistrationPage />}
-          redirect={toHome}
+          redirect={toFeed}
         />
         <Route path={Path.Profile} element={<ProfilePage />} />
         <PrivateRoute

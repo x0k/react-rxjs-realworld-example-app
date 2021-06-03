@@ -11,9 +11,10 @@ export type NavigationPushEventPayload =
   | {
       to: To
       state?: State
+      replace?: boolean
     }
 
-export const navigationPush = new Subject<NavigationPushEventPayload>()
+export const navigationNavigate = new Subject<NavigationPushEventPayload>()
 
 const store = createMemoryStore<Update>(history)
 
@@ -24,11 +25,14 @@ export const navigation$ = createRxState(
       (observer) =>
         new Subscription(history.listen((state) => observer.next(state)))
     ),
-    navigationPush.pipe(
+    navigationNavigate.pipe(
       tap((place) =>
         typeof place === 'string' || !('to' in place)
           ? history.push(place)
-          : history.push(place.to, place.state)
+          : (place.replace ? history.replace : history.push)(
+              place.to,
+              place.state
+            )
       ),
       switchMapTo(EMPTY)
     )

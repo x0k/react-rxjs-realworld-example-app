@@ -45,6 +45,9 @@ const catchGenericAjaxError =
 export const comments$ = createRxState(
   store,
   merge(
+    merge(commentsLoad, commentsPostComment, commentsDeleteComment).pipe(
+      map(() => ({ ...store.state, loading: true }))
+    ),
     commentsLoad.pipe(
       switchMap((slug) =>
         commentsApi.getArticleComments({ slug }).pipe(
@@ -53,6 +56,7 @@ export const comments$ = createRxState(
             slug,
             comments,
             errors: {},
+            loading: false,
           }))
         )
       ),
@@ -73,6 +77,8 @@ export const comments$ = createRxState(
           ...state,
           comment: '',
           comments: [comment, ...state.comments],
+          loading: false,
+          errors: {},
         }
       }),
       catchGenericAjaxError
@@ -86,6 +92,8 @@ export const comments$ = createRxState(
             return {
               ...state,
               comments: state.comments.filter((c) => c.id !== id),
+              loading: false,
+              errors: {},
             }
           })
         )

@@ -21,7 +21,7 @@ import { GenericAjaxError } from 'models/errors'
 import { Path } from 'models/path'
 
 import { token$, tokenSet } from './token'
-import { navigationPush } from './navigation'
+import { navigationNavigate } from './navigation'
 
 export enum UserStatus {
   Unknown = 'unknown',
@@ -70,7 +70,7 @@ export const user$ = createRxState(
       userResponseToState
     ),
     userLogOut.pipe(
-      tap(() => navigationPush.next(Path.Home)),
+      tap(() => navigationNavigate.next(Path.Feed)),
       mapTo({ type: UserStatus.Unauthorized })
     ),
     userSet.pipe(map((user) => ({ type: UserStatus.Authorized, user }))),

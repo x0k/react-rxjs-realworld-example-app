@@ -1,5 +1,13 @@
 import { combineLatest, merge, Subject } from 'rxjs'
-import { exhaustMap, filter, map, mapTo, switchMap, takeUntil } from 'rxjs/operators'
+import {
+  exhaustMap,
+  filter,
+  map,
+  mapTo,
+  switchMap,
+  takeUntil,
+  tap,
+} from 'rxjs/operators'
 
 import { articleApi, favoriteApi, profileApi } from 'lib/api'
 import {
@@ -40,9 +48,11 @@ const singleArticleResponseToState = map<SingleArticleResponse, ArticleStates>(
   })
 )
 
-const store = createMemoryStore<ArticleStates>({
+const initialState: ArticleStates = {
   type: LoadableDataStatus.Init,
-})
+}
+
+const store = createMemoryStore<ArticleStates>(initialState)
 
 export const article$ = createRxState<ArticleStates>(
   store,
@@ -92,7 +102,7 @@ export const article$ = createRxState<ArticleStates>(
       catchGenericAjaxErrorForLoadableData
     )
   ),
-  takeUntil(articleCleanup)
+  takeUntil(articleCleanup.pipe(tap(() => store.set(initialState))))
 )
 
 export const isAuthor$ = combineLatest([article$, user$]).pipe(

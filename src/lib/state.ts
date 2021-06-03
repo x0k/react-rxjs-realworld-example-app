@@ -2,6 +2,9 @@ export type State<Type extends string, Properties extends object = {}> = {
   type: Type
 } & Properties
 
+export type SelectState<States extends State<string>, Type extends string> =
+  Extract<States, State<Type>>
+
 export function isSpecificState<
   Type extends string,
   T extends ReadonlyArray<Type>,
