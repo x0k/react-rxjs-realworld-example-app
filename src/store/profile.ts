@@ -22,12 +22,11 @@ import {
   LoadableDataStatus,
 } from 'models/loadable-data'
 import { GenericAjaxError } from 'models/errors'
+import { ProfileUsername } from 'models/profile'
 
 import { user$, UserStatus } from './user'
 
 export type ProfileStates = LoadableDataStates<Profile, GenericAjaxError>
-
-export type ProfileUsername = Profile['username']
 
 export const profileLoad = new Subject<ProfileUsername>()
 
@@ -66,7 +65,7 @@ export const profile$ = createRxState<ProfileStates>(
       )
     ),
     profileLoad.pipe(
-      exhaustMap((username) => profileApi.getProfileByUsername({ username })),
+      switchMap((username) => profileApi.getProfileByUsername({ username })),
       profileResponseToState
     ),
     profileToggleFollowing.pipe(

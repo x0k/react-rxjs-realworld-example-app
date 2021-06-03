@@ -38,7 +38,7 @@ export function CommentsContainer({
   article: { slug },
 }: CommentsContainerProps) {
   const hooks = useSignalsHooks(commentsLoad, commentsCleanup, slug)
-  const { comment, comments, errors } = useRxState(comments$, hooks)
+  const { comment, comments, errors, loading } = useRxState(comments$, hooks)
   const userState = useRxState(user$)
   const userMatcher = useMemo(
     () => matcher<UserStatus, UserStates>(userState),
@@ -55,6 +55,7 @@ export function CommentsContainer({
               rows={3}
               value={comment}
               onChange={onCommentChange}
+              disabled={loading}
             />
           </div>
           <div className="card-footer">
@@ -63,7 +64,7 @@ export function CommentsContainer({
               className="comment-author-img"
               src={userMatcher.state.user.image}
             />
-            <Button variant={ButtonVariant.Primary} type="submit">
+            <Button variant={ButtonVariant.Primary} type="submit" disabled={loading} >
               Post Comment
             </Button>
           </div>

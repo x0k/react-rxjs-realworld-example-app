@@ -6,6 +6,7 @@ import {
   tap,
   takeUntil,
   switchMapTo,
+  switchMap,
 } from 'rxjs/operators'
 
 import { articleApi } from 'lib/api'
@@ -27,7 +28,7 @@ import {
   ReLoadableData,
 } from 'models/re-loadable-data'
 
-import { navigationPush } from './navigation'
+import { navigationNavigate } from './navigation'
 
 export enum EditorStatus {
   Create = 'create',
@@ -139,8 +140,8 @@ export const editor$ = createRxState(
     editorPublishArticle.pipe(map(() => ({ ...store.state, loading: true }))),
     editorPublishArticle.pipe(
       map(() => store.state),
-      exhaustMap(handleEditorPublish),
-      tap(({ article: { slug } }) => navigationPush.next(getArticlePath(slug))),
+      switchMap(handleEditorPublish),
+      tap(({ article: { slug } }) => navigationNavigate.next(getArticlePath(slug))),
       switchMapTo(EMPTY),
       catchGenericAjaxError
     )

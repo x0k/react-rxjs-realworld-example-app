@@ -3,7 +3,7 @@ import React, { useMemo } from 'react'
 import { useRxState } from 'lib/store-rx-state'
 import { foldState } from 'lib/state'
 
-import { Path } from 'models/path'
+import { getProfilePath, Path } from 'models/path'
 
 import { NavBar } from 'components/navbar'
 import { NavItem } from 'components/nav-item'
@@ -17,7 +17,9 @@ const foldUserState = foldState<UserStatus, UserStates, JSX.Element | null>({
   [UserStatus.Authorized]: ({ user }) => (
     <NavBar>
       <NavItem>
-        <NavLink to={Path.Home}>Home</NavLink>
+        <NavLink to={Path.Feed} end>
+          Home
+        </NavLink>
       </NavItem>
       <NavItem>
         <NavLink to={Path.Editor}>
@@ -32,7 +34,7 @@ const foldUserState = foldState<UserStatus, UserStates, JSX.Element | null>({
         </NavLink>
       </NavItem>
       <NavItem>
-        <NavLink to={`/@${user.username}`}>
+        <NavLink to={getProfilePath(user.username)}>
           {user.image && (
             <img alt={user.username} className="user-pic" src={user.image} />
           )}
@@ -44,7 +46,9 @@ const foldUserState = foldState<UserStatus, UserStates, JSX.Element | null>({
   [UserStatus.Unauthorized]: () => (
     <NavBar>
       <NavItem>
-        <NavLink to={Path.Home}>Home</NavLink>
+        <NavLink to={Path.Feed} end>
+          Home
+        </NavLink>
       </NavItem>
       <NavItem>
         <NavLink to={Path.Login}>Sign In</NavLink>

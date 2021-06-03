@@ -5,6 +5,7 @@ import { useRxState } from 'lib/store-rx-state'
 import { foldState } from 'lib/state'
 
 import { LoadableDataStatus } from 'models/loadable-data'
+import { ProfileUsername } from 'models/profile'
 
 import { Container } from 'components/container'
 import { Row } from 'components/row'
@@ -15,7 +16,6 @@ import {
   profileLoad,
   profile$,
   ProfileStates,
-  ProfileUsername,
   profileToggleFollowing,
   profileCleanup,
 } from 'store/profile'

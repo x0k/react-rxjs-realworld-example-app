@@ -1,37 +1,75 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 
 import { useRxState } from 'lib/store-rx-state'
+import { useStartSignalHooks } from 'lib/store-rx-signals'
 
-import { getTagPath, Path } from 'models/path'
+import { getFeedByTypePath, Path } from 'models/path'
+import { FeedType } from 'models/feed'
 
 import { NavItem } from 'components/nav-item'
 import { NavLink } from 'components/nav-link'
 import { Tabs } from 'components/tabs'
 
-import { Tag } from 'store/tags'
 import { isNotUnauthorized$ } from 'store/user'
+import {
+  feedType$,
+  feedTypeSet,
+  FeedTypeStates,
+} from 'store/feed-type'
+
+const onSetYourFeed = () => feedTypeSet.next({
+  type: FeedType.Your,
+})
+
+const onSetGlobalFeed = () => feedTypeSet.next({
+  type: FeedType.Global,
+})
 
 export interface FeedTabsContainerProps {
-  tag?: Tag
+  type?: FeedType.Your | FeedType.Global
+  tag?: string
 }
 
-export function FeedTabsContainer({ tag }: FeedTabsContainerProps) {
+export function FeedTabsContainer({ type, tag }: FeedTabsContainerProps) {
   const isNotUnauthorized = useRxState(isNotUnauthorized$)
+  const payload = useMemo<FeedTypeStates>(
+    () =>
+      type
+        ? { type }
+        : tag
+        ? { type: FeedType.ByTag, tag }
+        : { type: isNotUnauthorized ? FeedType.Your : FeedType.Global },
+    [type, tag, isNotUnauthorized]
+  )
+  const hooks = useStartSignalHooks(feedTypeSet, payload)
+  const feedType = useRxState(feedType$, hooks)
   return (
     <Tabs>
       {isNotUnauthorized && (
         <NavItem>
-          <NavLink to={Path.YourFeed}>Your Feed</NavLink>
+          <NavLink
+            to={getFeedByTypePath(FeedType.Your)}
+            active={feedType.type === FeedType.Your}
+            onClick={onSetYourFeed}
+          >
+            Your Feed
+          </NavLink>
         </NavItem>
       )}
       <NavItem>
-        <NavLink to={Path.GlobalFeed}>Global Feed</NavLink>
+        <NavLink
+          to={getFeedByTypePath(FeedType.Global)}
+          active={feedType.type === FeedType.Global}
+          onClick={onSetGlobalFeed}
+        >
+          Global Feed
+        </NavLink>
       </NavItem>
-      {tag && (
+      {feedType.type === FeedType.ByTag && (
         <NavItem>
-          <NavLink to={getTagPath(tag)}>
+          <NavLink to={Path.Feed} active>
             <i className="ion-pound" />
-            {tag}
+            {feedType.tag}
           </NavLink>
         </NavItem>
       )}

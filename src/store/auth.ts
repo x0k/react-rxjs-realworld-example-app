@@ -22,7 +22,7 @@ import {
 } from 'models/re-loadable-data'
 
 import { userSet } from './user'
-import { navigation$, navigationPush } from './navigation'
+import { navigation$, navigationNavigate } from './navigation'
 
 export type AuthState = LoginUser & ReLoadableData
 
@@ -63,8 +63,8 @@ export const auth$ = createRxState(
       tap(({ user }) => userSet.next(user)),
       withLatestFrom(navigation$),
       tap(([, { location }]) =>
-        navigationPush.next(
-          isLocationWithFromState(location) ? location.state.from : Path.Home
+        navigationNavigate.next(
+          isLocationWithFromState(location) ? location.state.from : Path.Feed
         )
       ),
       mapTo(initialState),

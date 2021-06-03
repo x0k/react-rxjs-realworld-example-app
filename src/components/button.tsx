@@ -1,4 +1,4 @@
-import React, { FunctionComponent } from 'react'
+import React, { ButtonHTMLAttributes, FunctionComponent } from 'react'
 import clsx from 'clsx'
 
 export enum ButtonVariant {
@@ -14,7 +14,7 @@ export enum ButtonSize {
   Large = 'btn-lg',
 }
 
-export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant
   size?: ButtonSize
 }

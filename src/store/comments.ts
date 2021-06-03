@@ -1,5 +1,5 @@
 import { merge, Subject } from 'rxjs'
-import { exhaustMap, map, takeUntil } from 'rxjs/operators'
+import { exhaustMap, map, switchMap, takeUntil } from 'rxjs/operators'
 
 import { createRxState } from 'lib/store-rx-state'
 import { Comment } from 'lib/conduit-client'
@@ -45,14 +45,18 @@ const catchGenericAjaxError =
 export const comments$ = createRxState(
   store,
   merge(
+    merge(commentsLoad, commentsPostComment, commentsDeleteComment).pipe(
+      map(() => ({ ...store.state, loading: true }))
+    ),
     commentsLoad.pipe(
-      exhaustMap((slug) =>
+      switchMap((slug) =>
         commentsApi.getArticleComments({ slug }).pipe(
           map(({ comments }) => ({
             ...store.state,
             slug,
             comments,
             errors: {},
+            loading: false,
           }))
         )
       ),
@@ -73,6 +77,8 @@ export const comments$ = createRxState(
           ...state,
           comment: '',
           comments: [comment, ...state.comments],
+          loading: false,
+          errors: {},
         }
       }),
       catchGenericAjaxError
@@ -86,6 +92,8 @@ export const comments$ = createRxState(
             return {
               ...state,
               comments: state.comments.filter((c) => c.id !== id),
+              loading: false,
+              errors: {},
             }
           })
         )

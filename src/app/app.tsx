@@ -17,7 +17,7 @@ export function App() {
   return (
     <Suspense fallback={<Spinner />}>
       <Header>
-        <Logo title={APP_NAME} to={Path.Home} />
+        <Logo title={APP_NAME} to={Path.Feed} />
         <NavBarContainer />
       </Header>
       <AppRoutes />
