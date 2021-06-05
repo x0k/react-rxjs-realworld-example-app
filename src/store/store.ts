@@ -85,30 +85,35 @@ import { createComments, initialCommentsState } from './comments'
 
 export const token = createRxStore(
   createToken,
-  createLocalStorageStore<AccessToken>(TOKEN_KEY, null)
-)(['set'])
+  createLocalStorageStore<AccessToken>(TOKEN_KEY, null),
+  ['set']
+)()
 
 export const navigation = createRxStore<
   Update,
   NavigationEvents,
   NavigationSources,
   [BrowserHistory]
->(createNavigation, createMemoryStore<Update>(history), {
+>(createNavigation, createMemoryStore<Update>(history), ['navigate'], {
   update$: new Observable<Update>(
     (observer) =>
       new Subscription(history.listen((state) => observer.next(state)))
   ),
-})(['navigate'], history)
+})(history)
 
 export const user = createRxStore<
   UserStates,
   UserEvents,
   UserSources,
   [UserSignals, UserAndAuthenticationApi]
->(createUser, createMemoryStore<UserStates>({ type: UserStatus.Unknown }), {
-  token$: token.state$,
-})(
+>(
+  createUser,
+  createMemoryStore<UserStates>({ type: UserStatus.Unknown }),
   ['logIn', 'logOut', 'set'],
+  {
+    token$: token.state$,
+  }
+)(
   { navigate: navigation.navigate, setToken: token.set },
   userAndAuthenticationApi
 )
@@ -117,44 +122,46 @@ export const isNotUnauthorized$ = createIsNotUnauthorized(user.state$)
 
 export const tags = createRxStore(
   createTags,
-  createMemoryStore<TagsStates>({ type: LoadableDataStatus.Init })
-)(['load', 'stop'], defaultApi)
+  createMemoryStore<TagsStates>({ type: LoadableDataStatus.Init }),
+  ['load', 'stop']
+)(defaultApi)
 
 export const feedType = createRxStore(
   createFeedType,
-  createMemoryStore(initialFeedTypeState)
-)(['set'])
+  createMemoryStore(initialFeedTypeState),
+  ['set']
+)()
 
 export const feedPage = createRxStore<number, FeedPageEvents, FeedPageSources>(
   createFeedPage,
   createMemoryStore(1),
+  ['set'],
   { feedType$: feedType.state$ }
-)(['set'])
+)()
 
 export const feed = createRxStore<
   FeedState,
   FeedEvents,
   FeedSources,
   [FeedSignals, ArticlesApi, FavoritesApi]
->(createFeed, createMemoryStore(initialFeedState), {
+>(createFeed, createMemoryStore(initialFeedState), ['stop', 'toggleFavorite'], {
   feedPage$: feedPage.state$,
   feedType$: feedType.state$,
-})(
-  ['stop', 'toggleFavorite'],
-  { setFeedType: feedType.set },
-  articleApi,
-  favoriteApi
-)
+})({ setFeedType: feedType.set }, articleApi, favoriteApi)
 
 export const auth = createRxStore<
   AuthState,
   AuthEvents,
   AuthSources,
   [AuthSignals, UserAndAuthenticationApi]
->(createAuth, createMemoryStore(initialAuthState), {
-  navigate$: navigation.state$,
-})(
+>(
+  createAuth,
+  createMemoryStore(initialAuthState),
   ['changeField', 'signIn', 'stop'],
+  {
+    navigate$: navigation.state$,
+  }
+)(
   { navigate: navigation.navigate, setUser: user.set },
   userAndAuthenticationApi
 )
@@ -164,10 +171,14 @@ export const registration = createRxStore<
   RegistrationEvents,
   RegistrationSources,
   [RegistrationSignals, UserAndAuthenticationApi]
->(createRegistration, createMemoryStore(initialRegistrationState), {
-  navigate$: navigation.state$,
-})(
+>(
+  createRegistration,
+  createMemoryStore(initialRegistrationState),
   ['changeField', 'signUp', 'stop'],
+  {
+    navigate$: navigation.state$,
+  }
+)(
   { navigate: navigation.navigate, setUser: user.set },
   userAndAuthenticationApi
 )
@@ -182,8 +193,9 @@ export const profile = createRxStore<
   createMemoryStore<ProfileStates>({
     type: LoadableDataStatus.Init,
   }),
+  ['load', 'stop', 'toggleFollowing'],
   { user$: user.state$ }
-)(['load', 'stop', 'toggleFollowing'], profileApi)
+)(profileApi)
 
 export const isCurrentUser$ = createIsCurrentUser(profile.state$, user.state$)
 
@@ -192,39 +204,31 @@ export const settings = createRxStore<
   SettingsEvents,
   SettingsSources,
   [SettingsSignals, UserAndAuthenticationApi]
->(createSettings, createMemoryStore(initialSettingsState), {
-  user$: user.state$,
-})(
+>(
+  createSettings,
+  createMemoryStore(initialSettingsState),
   ['changeField', 'stop', 'update'],
-  { setUser: user.set },
-  userAndAuthenticationApi
-)
+  {
+    user$: user.state$,
+  }
+)({ setUser: user.set }, userAndAuthenticationApi)
 
 export const editor = createRxStore(
   createEditor,
-  createMemoryStore(initialEditorState)
-)(
-  ['addTag', 'changeField', 'loadArticle', 'publish', 'removeTag', 'stop'],
-  navigation,
-  articleApi
-)
+  createMemoryStore(initialEditorState),
+  ['addTag', 'changeField', 'loadArticle', 'publish', 'removeTag', 'stop']
+)(navigation, articleApi)
 
 export const article = createRxStore(
   createArticle,
-  createMemoryStore(initialArticleState)
-)(
-  ['delete', 'load', 'stop', 'toggleFavorite', 'toggleFollow'],
-  articleApi,
-  profileApi,
-  favoriteApi
-)
+  createMemoryStore(initialArticleState),
+  ['delete', 'load', 'stop', 'toggleFavorite', 'toggleFollow']
+)(articleApi, profileApi, favoriteApi)
 
 export const isAuthor$ = createIsAuthor(article.state$, user.state$)
 
 export const comments = createRxStore(
   createComments,
-  createMemoryStore(initialCommentsState)
-)(
-  ['changeComment', 'deleteComment', 'postComment', 'load', 'stop'],
-  commentsApi
-)
+  createMemoryStore(initialCommentsState),
+  ['changeComment', 'deleteComment', 'postComment', 'load', 'stop']
+)(commentsApi)

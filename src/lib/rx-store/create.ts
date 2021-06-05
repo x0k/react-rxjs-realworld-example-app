@@ -21,9 +21,7 @@ export function createSubjects<Events>(
   return Object.fromEntries(keys.map((key) => [`${key}$`, new Subject()]))
 }
 
-export function createSignals<S, Subjects extends SubjectsOf<S>>(
-  subjects: Subjects
-): SignalsOf<S> {
+export function createSignals<Subjects>(subjects: SubjectsOf<Subjects>): SignalsOf<Subjects> {
   //@ts-expect-error
   return Object.fromEntries(
     Object.entries(subjects).map(([key, subject]) => [
@@ -44,11 +42,9 @@ export function createRxStore<
     events: ObservableOf<Events>,
     ...args: Args
   ) => Observable<State>,
-  store: Store<State>
-): (
-  events: ReadonlyArray<keyof Events>,
-  ...args: Args
-) => SignalsOf<Events> & ObservableOf<{ state: State }>
+  store: Store<State>,
+  events: ReadonlyArray<keyof Events>
+): (...args: Args) => SignalsOf<Events> & ObservableOf<{ state: State }>
 
 export function createRxStore<
   State,
@@ -62,11 +58,9 @@ export function createRxStore<
     ...args: Args
   ) => Observable<State>,
   store: Store<State>,
-  sources: ObservableOf<Sources>
-): (
   events: ReadonlyArray<keyof Events>,
-  ...args: Args
-) => SignalsOf<Events> & ObservableOf<{ state: State }>
+  sources: ObservableOf<Sources>
+): (...args: Args) => SignalsOf<Events> & ObservableOf<{ state: State }>
 
 export function createRxStore<
   State,
@@ -80,21 +74,18 @@ export function createRxStore<
     ...args: Args
   ) => Observable<State>,
   store: Store<State>,
-  sources?: ObservableOf<Sources>
-): (
   events: ReadonlyArray<keyof Events>,
-  ...args: Args
-) => SignalsOf<Events> & ObservableOf<{ state: State }> {
-  return (events, ...rest) => {
-    const subjects = createSubjects(events)
-    return {
-      ...createSignals<Events, SubjectsOf<Events>>(subjects),
-      state$: createRxState(
-        store,
-        //@ts-expect-error
-        sources ? { ...subjects, ...sources } : subjects,
-        ...rest
-      ),
-    }
-  }
+  sources?: ObservableOf<Sources>
+): (...args: Args) => SignalsOf<Events> & ObservableOf<{ state: State }> {
+  const subjects = createSubjects(events)
+  const signals = createSignals(subjects)
+  return (...rest) => ({
+    ...signals,
+    state$: createRxState(
+      store,
+      //@ts-expect-error
+      sources ? { ...subjects, ...sources } : subjects,
+      ...rest
+    ),
+  })
 }
