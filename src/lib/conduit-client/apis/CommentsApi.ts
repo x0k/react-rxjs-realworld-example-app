@@ -140,10 +140,17 @@ export class CommentsApi extends BaseAPI {
   > {
     throwIfNullOrUndefined(slug, 'slug', 'getArticleComments')
 
+    const headers: HttpHeaders = {
+      ...(this.configuration.apiKey && {
+        Authorization: this.configuration.apiKey('Authorization'),
+      }), // Token authentication
+    }
+
     return this.request<MultipleCommentsResponse>(
       {
         url: '/articles/{slug}/comments'.replace('{slug}', encodeURI(slug)),
         method: 'GET',
+        headers,
       },
       opts?.responseOpts
     )

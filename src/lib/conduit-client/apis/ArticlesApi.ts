@@ -148,10 +148,17 @@ export class ArticlesApi extends BaseAPI {
   > {
     throwIfNullOrUndefined(slug, 'slug', 'getArticle')
 
+    const headers: HttpHeaders = {
+      ...(this.configuration.apiKey && {
+        Authorization: this.configuration.apiKey('Authorization'),
+      }), // Token authentication
+    }
+
     return this.request<SingleArticleResponse>(
       {
         url: '/articles/{slug}'.replace('{slug}', encodeURI(slug)),
         method: 'GET',
+        headers,
       },
       opts?.responseOpts
     )
