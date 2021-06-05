@@ -1,28 +1,28 @@
 import React from 'react'
 
-import { useRxState } from 'lib/store-rx-state'
 import { createFormSubmitHandler, createFieldChangeHandlers } from 'lib/event'
-import { createStopSignalHooks } from 'lib/store-rx-signals'
+import { createStopSignalHooks } from 'lib/rx-store'
+import { useRxState } from 'lib/rx-store-react'
 
 import { Form } from 'components/form'
 import { InputField } from 'components/input-field'
 import { Button, ButtonSize, ButtonVariant } from 'components/button'
 import { ErrorsList } from 'components/errors-list'
 
-import { auth$, authChangeField, authCleanup, authSignIn } from 'store/auth'
+import { auth } from 'store'
 
 const [onEmailChange, onPasswordChange] = createFieldChangeHandlers(
-  authChangeField,
+  auth.changeField,
   'email',
   'password'
 )
 
-const submitHandler = createFormSubmitHandler(authSignIn)
+const submitHandler = createFormSubmitHandler(auth.signIn)
 
-const hooks = createStopSignalHooks(authCleanup)
+const hooks = createStopSignalHooks(auth.stop)
 
 export function LoginContainer() {
-  const { email, errors, loading, password } = useRxState(auth$, hooks)
+  const { email, errors, loading, password } = useRxState(auth.state$, hooks)
   return (
     <>
       {Object.keys(errors).length > 0 && <ErrorsList errors={errors} />}

@@ -2,18 +2,19 @@ import { useCallback, useEffect } from 'react'
 import { Observable } from 'rxjs'
 
 import { useForceUpdate, useLazyRef } from 'lib/hooks'
+import { RxHooks } from 'lib/rx-store'
 
-import { RxHooks, RxStates, RxStateStatus } from './model'
+import { RxStates, RxStateStatus } from './model'
 import { createSuspender } from './suspender'
 
-export type RxStateOptions<T, E> = RxHooks<T, E> & {
+export type RxStateOptions<T> = RxHooks & {
   initialValue?: T
   compare?: (a: T, b: T) => boolean
 }
 
 export function useRxState<T, E = Error>(
   observable: Observable<T>,
-  options: RxStateOptions<T, E> = {}
+  options: RxStateOptions<T> = {}
 ) {
   const forceUpdate = useForceUpdate()
   const {
@@ -66,9 +67,9 @@ export function useRxState<T, E = Error>(
     if (subscriptionRef.current.closed) {
       subscriptionRef.current = subscribe()
     }
-    afterSubscribe?.(stateRef.current)
+    afterSubscribe?.()
     return () => {
-      beforeUnsubscribe?.(stateRef.current)
+      beforeUnsubscribe?.()
       subscriptionRef.current.unsubscribe()
     }
   }, [afterSubscribe, beforeUnsubscribe, stateRef, subscribe, subscriptionRef])

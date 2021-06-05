@@ -1,4 +1,4 @@
-import { combineLatest, merge, Subject } from 'rxjs'
+import { combineLatest, merge } from 'rxjs'
 import {
   exhaustMap,
   filter,
@@ -9,15 +9,17 @@ import {
   tap,
 } from 'rxjs/operators'
 
-import { articleApi, favoriteApi, profileApi } from 'lib/api'
 import {
   Article,
+  ArticlesApi,
+  FavoritesApi,
+  ProfileApi,
   ProfileResponse,
   SingleArticleResponse,
 } from 'lib/conduit-client'
-import { createRxState } from 'lib/store-rx-state'
 import { isSpecificState } from 'lib/state'
-import { createMemoryStore } from 'lib/store'
+import { Store } from 'lib/store'
+import { ObservableOf, createRxState } from 'lib/rx-store'
 
 import {
   catchGenericAjaxErrorForLoadableData,
@@ -27,19 +29,9 @@ import {
 import { GenericAjaxError } from 'models/errors'
 import { ArticleSlug } from 'models/article'
 
-import { user$, UserStatus } from './user'
+import { UserStates, UserStatus } from './user'
 
 export type ArticleStates = LoadableDataStates<Article, GenericAjaxError>
-
-export const articleLoad = new Subject<ArticleSlug>()
-
-export const articleCleanup = new Subject()
-
-export const articleDelete = new Subject()
-
-export const articleToggleFollow = new Subject()
-
-export const articleToggleFavorite = new Subject()
 
 const singleArticleResponseToState = map<SingleArticleResponse, ArticleStates>(
   ({ article }) => ({
@@ -48,68 +40,95 @@ const singleArticleResponseToState = map<SingleArticleResponse, ArticleStates>(
   })
 )
 
-const initialState: ArticleStates = {
+export const initialArticleState: ArticleStates = {
   type: LoadableDataStatus.Init,
 }
 
-const store = createMemoryStore<ArticleStates>(initialState)
+export type ArticleEvents = ObservableOf<{
+  load: ArticleSlug
+  stop: unknown
+  delete: unknown
+  toggleFollow: unknown
+  toggleFavorite: unknown
+}>
 
-export const article$ = createRxState<ArticleStates>(
-  store,
-  merge(
-    articleLoad.pipe(mapTo({ type: LoadableDataStatus.Loading })),
-    articleLoad.pipe(
-      switchMap((slug) => articleApi.getArticle({ slug })),
-      singleArticleResponseToState,
-      catchGenericAjaxErrorForLoadableData
+export function createArticle(
+  store: Store<ArticleStates>,
+  {
+    delete$,
+    load$,
+    stop$,
+    toggleFavorite$,
+    toggleFollow$,
+  }: ArticleEvents,
+  api: ArticlesApi,
+  profileApi: ProfileApi,
+  favoriteApi: FavoritesApi
+) {
+  return createRxState<ArticleStates>(
+    store,
+    merge(
+      load$.pipe(mapTo({ type: LoadableDataStatus.Loading })),
+      load$.pipe(
+        switchMap((slug) => api.getArticle({ slug })),
+        singleArticleResponseToState,
+        catchGenericAjaxErrorForLoadableData
+      ),
+      delete$.pipe(
+        map(() => store.state),
+        filter(isSpecificState(LoadableDataStatus.IDLE)),
+        exhaustMap(({ data }) => api.deleteArticle(data)),
+        mapTo<void, ArticleStates>({ type: LoadableDataStatus.Init }),
+        catchGenericAjaxErrorForLoadableData
+      ),
+      toggleFollow$.pipe(
+        map(() => store.state),
+        filter(isSpecificState(LoadableDataStatus.IDLE)),
+        exhaustMap(({ data }) => {
+          const {
+            author: { following, username },
+          } = data
+          return (
+            following
+              ? profileApi.unfollowUserByUsername({ username })
+              : profileApi.followUserByUsername({ username })
+          ).pipe(
+            map<ProfileResponse, ArticleStates>(({ profile }) => ({
+              type: LoadableDataStatus.IDLE,
+              data: { ...data, author: profile },
+            }))
+          )
+        }),
+        catchGenericAjaxErrorForLoadableData
+      ),
+      toggleFavorite$.pipe(
+        map(() => store.state),
+        filter(isSpecificState(LoadableDataStatus.IDLE)),
+        exhaustMap(({ data: { favorited, slug } }) => {
+          return favorited
+            ? favoriteApi.deleteArticleFavorite({ slug })
+            : favoriteApi.createArticleFavorite({ slug })
+        }),
+        singleArticleResponseToState,
+        catchGenericAjaxErrorForLoadableData
+      )
     ),
-    articleDelete.pipe(
-      map(() => store.state),
-      filter(isSpecificState(LoadableDataStatus.IDLE)),
-      exhaustMap(({ data }) => articleApi.deleteArticle(data)),
-      mapTo<void, ArticleStates>({ type: LoadableDataStatus.Init }),
-      catchGenericAjaxErrorForLoadableData
-    ),
-    articleToggleFollow.pipe(
-      map(() => store.state),
-      filter(isSpecificState(LoadableDataStatus.IDLE)),
-      exhaustMap(({ data }) => {
-        const {
-          author: { following, username },
-        } = data
-        return (
-          following
-            ? profileApi.unfollowUserByUsername({ username })
-            : profileApi.followUserByUsername({ username })
-        ).pipe(
-          map<ProfileResponse, ArticleStates>(({ profile }) => ({
-            type: LoadableDataStatus.IDLE,
-            data: { ...data, author: profile },
-          }))
-        )
-      }),
-      catchGenericAjaxErrorForLoadableData
-    ),
-    articleToggleFavorite.pipe(
-      map(() => store.state),
-      filter(isSpecificState(LoadableDataStatus.IDLE)),
-      exhaustMap(({ data: { favorited, slug } }) => {
-        return favorited
-          ? favoriteApi.deleteArticleFavorite({ slug })
-          : favoriteApi.createArticleFavorite({ slug })
-      }),
-      singleArticleResponseToState,
-      catchGenericAjaxErrorForLoadableData
-    )
-  ),
-  takeUntil(articleCleanup.pipe(tap(() => store.set(initialState))))
-)
-
-export const isAuthor$ = combineLatest([article$, user$]).pipe(
-  map(
-    ([article, user]) =>
-      article.type === LoadableDataStatus.IDLE &&
-      user.type === UserStatus.Authorized &&
-      article.data.author.username === user.user.username
+    takeUntil(stop$.pipe(tap(() => store.set(initialArticleState))))
   )
-)
+}
+
+export type IsAuthorEvents = ObservableOf<{
+  article: ArticleStates
+  user: UserStates
+}>
+
+export function createIsAuthor({ article$, user$ }: IsAuthorEvents) {
+  return combineLatest([article$, user$]).pipe(
+    map(
+      ([article, user]) =>
+        article.type === LoadableDataStatus.IDLE &&
+        user.type === UserStatus.Authorized &&
+        article.data.author.username === user.user.username
+    )
+  )
+}

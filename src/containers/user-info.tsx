@@ -1,8 +1,8 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-import { useRxState } from 'lib/store-rx-state'
 import { foldState } from 'lib/state'
+import { useRxState, useSignalsHooks } from 'lib/rx-store-react'
 
 import { LoadableDataStatus } from 'models/loadable-data'
 import { ProfileUsername } from 'models/profile'
@@ -11,28 +11,23 @@ import { Container } from 'components/container'
 import { Row } from 'components/row'
 import { Button, ButtonVariant } from 'components/button'
 
-import {
-  isCurrentUser$,
-  profileLoad,
-  profile$,
-  ProfileStates,
-  profileToggleFollowing,
-  profileCleanup,
-} from 'store/profile'
-import { useSignalsHooks } from 'lib/store-rx-signals'
+import { isCurrentUser$, profile } from 'store'
+import { ProfileStates } from 'store/profile'
 
 export interface UserInfoContainerProps {
   username: ProfileUsername
 }
 
 export function UserInfoContainer({ username }: UserInfoContainerProps) {
-  const hooks = useSignalsHooks(profileLoad, profileCleanup, username)
-  const profileState = useRxState(profile$, hooks)
+  const hooks = useSignalsHooks(profile.load, profile.stop, username)
+  const profileState = useRxState(profile.state$, hooks)
   const isCurrentUser = useRxState(isCurrentUser$)
   return foldState<LoadableDataStatus, ProfileStates, JSX.Element | null>({
     [LoadableDataStatus.Init]: () => null,
     [LoadableDataStatus.Loading]: () => null,
-    [LoadableDataStatus.IDLE]: ({ data: { bio, image, username, following } }) => (
+    [LoadableDataStatus.IDLE]: ({
+      data: { bio, image, username, following },
+    }) => (
       <div className="user-info">
         <Container>
           <Row>
@@ -53,7 +48,7 @@ export function UserInfoContainer({ username }: UserInfoContainerProps) {
               ) : (
                 <Button
                   variant={ButtonVariant.Secondary}
-                  onClick={() => profileToggleFollowing.next(username)}
+                  onClick={() => profile.toggleFollowing(username)}
                 >
                   <i className="ion-plus-round" />
                   &nbsp;{following ? 'Unfollow' : 'Follow'} {username}

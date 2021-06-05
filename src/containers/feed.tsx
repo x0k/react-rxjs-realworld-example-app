@@ -1,15 +1,15 @@
 import React from 'react'
 
-import { useRxState } from 'lib/store-rx-state'
-import { createStopSignalHooks } from 'lib/store-rx-signals'
 import { Article } from 'lib/conduit-client'
+import { createStopSignalHooks } from 'lib/rx-store'
+import { useRxState } from 'lib/rx-store-react'
 
 import { ErrorsList } from 'components/errors-list'
 import { Pagination } from 'components/pagination'
 import { ArticlesList } from 'components/articles-list'
 
-import { feed$, feedCleanup, feedPerPage } from 'store/feed'
-import { feedPage$, feedPageSet } from 'store/feed-page'
+import { feed, feedPage } from 'store'
+import { feedPerPage } from 'store/feed'
 
 export interface FeedContainerProps {
   children: (article: Article) => JSX.Element
@@ -17,13 +17,14 @@ export interface FeedContainerProps {
 
 const topMarginStyle = { marginTop: 1 }
 
-const onSetPage = (page: number) => feedPageSet.next(page)
-
-const hooks = createStopSignalHooks(feedCleanup)
+const hooks = createStopSignalHooks(feed.stop)
 
 export function FeedContainer({ children }: FeedContainerProps) {
-  const page = useRxState(feedPage$)
-  const { errors, articles, articlesCount, loading } = useRxState(feed$, hooks)
+  const page = useRxState(feedPage.state$)
+  const { errors, articles, articlesCount, loading } = useRxState(
+    feed.state$,
+    hooks
+  )
   if (Object.keys(errors).length > 0) {
     return <ErrorsList errors={errors} />
   }
@@ -44,7 +45,7 @@ export function FeedContainer({ children }: FeedContainerProps) {
         count={articlesCount}
         current={page}
         perPage={feedPerPage}
-        onClick={onSetPage}
+        onClick={feedPage.set}
       />
     </>
   )

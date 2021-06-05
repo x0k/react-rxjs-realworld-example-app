@@ -4,21 +4,24 @@ import { useParams } from 'react-router-dom'
 
 import { Article } from 'lib/conduit-client'
 
+import { getFeedByTagPath } from 'models/path'
+
 import { ArticleMeta } from 'components/article-meta'
 import { Banner } from 'components/banner'
 import { Container } from 'components/container'
 import { Page } from 'components/page'
 import { Row } from 'components/row'
+import { Tag } from 'components/tag'
+import { TagsList } from 'components/tags-list'
 
 import { ArticleContainer } from 'containers/article'
 import { ArticleActionsContainer } from 'containers/article-actions'
 import { CommentsContainer } from 'containers/comments'
-import { ArticleTagsContainer } from 'containers/article-tags'
 
 const markdownOptions = { forceBlock: true }
 
 function renderArticle(article: Article) {
-  const { title, body } = article
+  const { title, body, tagList } = article
   const actions = (
     <ArticleMeta article={article}>
       <ArticleActionsContainer article={article} />
@@ -36,7 +39,13 @@ function renderArticle(article: Article) {
         <Row className="article-content">
           <div className="col-xs-12">
             <Markdown options={markdownOptions}>{body}</Markdown>
-            <ArticleTagsContainer article={article} />
+            <TagsList>
+              {tagList.map((tag) => (
+                <Tag to={getFeedByTagPath(tag)} outline key={tag}>
+                  {tag}
+                </Tag>
+              ))}
+            </TagsList>
           </div>
         </Row>
         <hr />

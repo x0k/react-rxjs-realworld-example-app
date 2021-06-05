@@ -1,4 +1,4 @@
-import { Subject, combineLatest, merge, Observable, of, EMPTY } from 'rxjs'
+import { combineLatest, merge, Observable, of, EMPTY } from 'rxjs'
 import {
   exhaustMap,
   filter,
@@ -9,12 +9,10 @@ import {
   takeUntil,
 } from 'rxjs/operators'
 
-import { profileApi } from 'lib/api'
-import { Profile, ProfileResponse } from 'lib/conduit-client'
-import { createRxState } from 'lib/store-rx-state'
+import { Profile, ProfileApi, ProfileResponse } from 'lib/conduit-client'
 import { isSpecificState } from 'lib/state'
-import { injectStore } from 'lib/store-rx-inject'
-import { createMemoryStore } from 'lib/store'
+import { Store } from 'lib/store'
+import { ObservableOf, createRxState, injectStore } from 'lib/rx-store'
 
 import {
   catchGenericAjaxErrorForLoadableData,
@@ -24,15 +22,9 @@ import {
 import { GenericAjaxError } from 'models/errors'
 import { ProfileUsername } from 'models/profile'
 
-import { user$, UserStatus } from './user'
+import { UserStates, UserStatus } from './user'
 
 export type ProfileStates = LoadableDataStates<Profile, GenericAjaxError>
-
-export const profileLoad = new Subject<ProfileUsername>()
-
-export const profileCleanup = new Subject()
-
-export const profileToggleFollowing = new Subject<ProfileUsername>()
 
 const profileResponseToState = (
   observable: Observable<ProfileResponse>
@@ -45,47 +37,69 @@ const profileResponseToState = (
     catchGenericAjaxErrorForLoadableData
   )
 
-const store = createMemoryStore<ProfileStates>({
-  type: LoadableDataStatus.Init,
-})
+export type ProfileEvents = {
+  load: ProfileUsername
+  toggleFollowing: ProfileUsername
+  stop: unknown
+}
 
-export const profile$ = createRxState<ProfileStates>(
-  store,
-  merge(
-    profileLoad.pipe(mapTo({ type: LoadableDataStatus.Loading })),
-    profileLoad.pipe(
-      withLatestFrom(user$),
-      switchMap(([username, user]) =>
-        user.type === UserStatus.Authorized && user.user.username === username
-          ? of<ProfileStates>({
-              type: LoadableDataStatus.IDLE,
-              data: { ...user.user, following: false },
-            })
-          : EMPTY
+export type ProfileSources = { user: UserStates }
+
+export function createProfile(
+  store: Store<ProfileStates>,
+  {
+    load$,
+    stop$,
+    toggleFollowing$,
+    user$,
+  }: ObservableOf<ProfileEvents & ProfileSources>,
+  api: ProfileApi
+) {
+  return createRxState<ProfileStates>(
+    store,
+    merge(
+      load$.pipe(mapTo({ type: LoadableDataStatus.Loading })),
+      load$.pipe(
+        withLatestFrom(user$),
+        switchMap(([username, user]) =>
+          user.type === UserStatus.Authorized && user.user.username === username
+            ? of<ProfileStates>({
+                type: LoadableDataStatus.IDLE,
+                data: { ...user.user, following: false },
+              })
+            : EMPTY
+        )
+      ),
+      load$.pipe(
+        switchMap((username) => api.getProfileByUsername({ username })),
+        profileResponseToState
+      ),
+      toggleFollowing$.pipe(
+        injectStore(store, filter(isSpecificState(LoadableDataStatus.IDLE))),
+        exhaustMap(([username, state]) =>
+          state.data.following
+            ? api.unfollowUserByUsername({ username })
+            : api.followUserByUsername({ username })
+        ),
+        profileResponseToState
       )
     ),
-    profileLoad.pipe(
-      switchMap((username) => profileApi.getProfileByUsername({ username })),
-      profileResponseToState
-    ),
-    profileToggleFollowing.pipe(
-      injectStore(store, filter(isSpecificState(LoadableDataStatus.IDLE))),
-      exhaustMap(([username, state]) =>
-        state.data.following
-          ? profileApi.unfollowUserByUsername({ username })
-          : profileApi.followUserByUsername({ username })
-      ),
-      profileResponseToState
-    )
-  ),
-  takeUntil(profileCleanup)
-)
-
-export const isCurrentUser$ = combineLatest([user$, profile$]).pipe(
-  map(
-    ([user, profile]) =>
-      user.type === UserStatus.Authorized &&
-      profile.type === LoadableDataStatus.IDLE &&
-      user.user.username === profile.data.username
+    takeUntil(stop$)
   )
-)
+}
+
+export type IsCurrentUserEvents = ObservableOf<{
+  user: UserStates
+  profile: ProfileStates
+}>
+
+export function createIsCurrentUser({ profile$, user$ }: IsCurrentUserEvents) {
+  return combineLatest([user$, profile$]).pipe(
+    map(
+      ([user, profile]) =>
+        user.type === UserStatus.Authorized &&
+        profile.type === LoadableDataStatus.IDLE &&
+        user.user.username === profile.data.username
+    )
+  )
+}

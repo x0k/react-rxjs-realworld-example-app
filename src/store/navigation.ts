@@ -1,12 +1,11 @@
-import { EMPTY, merge, Observable, Subject, Subscription } from 'rxjs'
+import { EMPTY, merge } from 'rxjs'
 import { switchMapTo, tap } from 'rxjs/operators'
-import { State, To, Update } from 'history'
+import { BrowserHistory, State, To, Update } from 'history'
 
-import { history } from 'lib/history'
-import { createRxState } from 'lib/store-rx-state'
-import { createMemoryStore } from 'lib/store'
+import { Store } from 'lib/store'
+import { ObservableOf, createRxState } from 'lib/rx-store'
 
-export type NavigationPushEventPayload =
+export type NavigateEventPayload =
   | To
   | {
       to: To
@@ -14,27 +13,34 @@ export type NavigationPushEventPayload =
       replace?: boolean
     }
 
-export const navigationNavigate = new Subject<NavigationPushEventPayload>()
+export type NavigationEvents = {
+  navigate: NavigateEventPayload
+}
 
-const store = createMemoryStore<Update>(history)
+export type NavigationSources = {
+  update: Update
+}
 
-export const navigation$ = createRxState(
-  store,
-  merge(
-    new Observable(
-      (observer) =>
-        new Subscription(history.listen((state) => observer.next(state)))
-    ),
-    navigationNavigate.pipe(
-      tap((place) =>
-        typeof place === 'string' || !('to' in place)
-          ? history.push(place)
-          : (place.replace ? history.replace : history.push)(
-              place.to,
-              place.state
-            )
-      ),
-      switchMapTo(EMPTY)
+export function createNavigation(
+  store: Store<Update>,
+  { navigate$, update$ }: ObservableOf<NavigationEvents & NavigationSources>,
+  history: BrowserHistory
+) {
+  return createRxState(
+    store,
+    merge(
+      update$,
+      navigate$.pipe(
+        tap((place) =>
+          typeof place === 'string' || !('to' in place)
+            ? history.push(place)
+            : (place.replace ? history.replace : history.push)(
+                place.to,
+                place.state
+              )
+        ),
+        switchMapTo(EMPTY)
+      )
     )
   )
-)
+}

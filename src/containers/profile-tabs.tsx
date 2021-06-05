@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from 'react'
 
-import { useStartSignalHooks } from 'lib/store-rx-signals'
-import { useRxState } from 'lib/store-rx-state'
+import { useRxState, useStartSignalHooks } from 'lib/rx-store-react'
 
 import { ProfileUsername } from 'models/profile'
 import { FeedType, ProfileFeedByType } from 'models/feed'
@@ -11,7 +10,8 @@ import { Tabs } from 'components/tabs'
 import { NavItem } from 'components/nav-item'
 import { NavLink } from 'components/nav-link'
 
-import { FeedTypeStates, feedTypeSet, feedType$ } from 'store/feed-type'
+import { feedType } from 'store'
+import { FeedTypeStates } from 'store/feed-type'
 
 export interface ProfileTabsContainerProps {
   username: ProfileUsername
@@ -29,14 +29,14 @@ export function ProfileTabsContainer({
         : { type: FeedType.ByAuthor, author: username },
     [username, type]
   )
-  const hooks = useStartSignalHooks(feedTypeSet, payload)
-  const feedType = useRxState(feedType$, hooks)
+  const hooks = useStartSignalHooks(feedType.set, payload)
+  const state = useRxState(feedType.state$, hooks)
   const onMyArticles = useCallback(
-    () => feedTypeSet.next({ type: FeedType.ByAuthor, author: username }),
+    () => feedType.set({ type: FeedType.ByAuthor, author: username }),
     [username]
   )
   const onFavorites = useCallback(
-    () => feedTypeSet.next({ type: FeedType.Favorite, favorited: username }),
+    () => feedType.set({ type: FeedType.Favorite, favorited: username }),
     [username]
   )
   return (
@@ -44,7 +44,7 @@ export function ProfileTabsContainer({
       <NavItem>
         <NavLink
           to={getProfileFeedByTypePath(username, FeedType.ByAuthor)}
-          active={feedType.type === FeedType.ByAuthor}
+          active={state.type === FeedType.ByAuthor}
           onClick={onMyArticles}
         >
           My Articles
@@ -53,7 +53,7 @@ export function ProfileTabsContainer({
       <NavItem>
         <NavLink
           to={getProfileFeedByTypePath(username, FeedType.Favorite)}
-          active={feedType.type === FeedType.Favorite}
+          active={state.type === FeedType.Favorite}
           onClick={onFavorites}
         >
           Favorited Articles

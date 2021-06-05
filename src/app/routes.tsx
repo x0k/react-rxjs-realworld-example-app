@@ -1,14 +1,14 @@
 import React, { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 
-import { useRxState } from 'lib/store-rx-state'
 import { PrivateRoute } from 'lib/router'
+import { useRxState } from 'lib/rx-store-react'
 
 import { Path } from 'models/path'
 
 import { Spinner } from 'components/spinner'
 
-import { isNotUnauthorized$ } from 'store/user'
+import { isNotUnauthorized$ } from 'store'
 
 const FeedPage = lazy(() => import('pages/feed'))
 const NotMachPage = lazy(() => import('pages/not-match'))

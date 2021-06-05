@@ -1,8 +1,8 @@
 import React from 'react'
 
-import { useRxState } from 'lib/store-rx-state'
 import { foldState } from 'lib/state'
-import { createSignalsHooks } from 'lib/store-rx-signals'
+import { createSignalsHooks } from 'lib/rx-store'
+import { useRxState } from 'lib/rx-store-react'
 
 import { LoadableDataStatus } from 'models/loadable-data'
 import { getFeedByTagPath } from 'models/path'
@@ -10,7 +10,8 @@ import { getFeedByTagPath } from 'models/path'
 import { TagsList } from 'components/tags-list'
 import { Tag } from 'components/tag'
 
-import { tags$, tagsCleanup, tagsLoad, TagsStates } from 'store/tags'
+import { tags } from 'store'
+import { TagsStates } from 'store/tags'
 
 const foldTagsState = foldState<
   LoadableDataStatus,
@@ -31,9 +32,9 @@ const foldTagsState = foldState<
   [LoadableDataStatus.Error]: ({ error }) => <p>{error.message}</p>,
 })
 
-const hooks = createSignalsHooks({ start: tagsLoad, stop: tagsCleanup })
+const hooks = createSignalsHooks({ start: tags.load, stop: tags.stop })
 
 export function TagsContainer() {
-  const tagsState = useRxState(tags$, hooks)
+  const tagsState = useRxState(tags.state$, hooks)
   return foldTagsState(tagsState)
 }

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 
-import { useRxState } from 'lib/store-rx-state'
 import { foldState } from 'lib/state'
+import { useRxState } from 'lib/rx-store-react'
 
 import { getProfilePath, Path } from 'models/path'
 
@@ -9,7 +9,8 @@ import { NavBar } from 'components/navbar'
 import { NavItem } from 'components/nav-item'
 import { NavLink } from 'components/nav-link'
 
-import { user$, UserStates, UserStatus } from 'store/user'
+import { user } from 'store'
+import { UserStates, UserStatus } from 'store/user'
 
 const foldUserState = foldState<UserStatus, UserStates, JSX.Element | null>({
   [UserStatus.Unknown]: () => null,
@@ -61,6 +62,6 @@ const foldUserState = foldState<UserStatus, UserStates, JSX.Element | null>({
 })
 
 export function NavBarContainer() {
-  const userState = useRxState(user$)
+  const userState = useRxState(user.state$)
   return useMemo(() => foldUserState(userState), [userState])
 }

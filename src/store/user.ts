@@ -1,27 +1,27 @@
-import { merge, Observable, of, Subject } from 'rxjs'
-import {
-  catchError,
-  distinctUntilChanged,
-  exhaustMap,
-  filter,
-  map,
-  mapTo,
-  tap,
-} from 'rxjs/operators'
+import { merge, Observable, of } from 'rxjs'
+import { catchError, exhaustMap, filter, map, mapTo, tap } from 'rxjs/operators'
 
-import { LoginUser, User, UserResponse } from 'lib/conduit-client'
-import { createRxState } from 'lib/store-rx-state'
+import {
+  LoginUser,
+  User,
+  UserAndAuthenticationApi,
+  UserResponse,
+} from 'lib/conduit-client'
 import { isNull, isPresent } from 'lib/types'
 import { State } from 'lib/state'
-import { userAndAuthenticationApi } from 'lib/api'
-import { injectStore } from 'lib/store-rx-inject'
-import { createMemoryStore } from 'lib/store'
+import { Store } from 'lib/store'
+import {
+  SignalsOf,
+  ObservableOf,
+  createRxState,
+  injectStore,
+} from 'lib/rx-store'
 
 import { GenericAjaxError } from 'models/errors'
 import { Path } from 'models/path'
 
-import { token$, tokenSet } from './token'
-import { navigationNavigate } from './navigation'
+import { AccessToken } from './token'
+import { NavigateEventPayload } from './navigation'
 
 export enum UserStatus {
   Unknown = 'unknown',
@@ -35,10 +35,6 @@ export type UserStates =
   | State<UserStatus.LogIn>
   | State<UserStatus.Authorized, { user: User }>
   | State<UserStatus.Unauthorized, { error?: GenericAjaxError }>
-
-export const userLogIn = new Subject<LoginUser>()
-export const userLogOut = new Subject()
-export const userSet = new Subject<User>()
 
 const userResponseToState = (
   observable: Observable<UserResponse>
@@ -59,47 +55,68 @@ const userResponseToState = (
     )
   )
 
-const store = createMemoryStore<UserStates>({ type: UserStatus.Unknown })
+export const initialState: UserStates = { type: UserStatus.Unknown }
 
-export const user$ = createRxState(
-  store,
-  merge<UserStates>(
-    userLogIn.pipe(map((data) => ({ type: UserStatus.LogIn, data }))),
-    userLogIn.pipe(
-      exhaustMap((user) => userAndAuthenticationApi.login({ body: { user } })),
-      userResponseToState
-    ),
-    userLogOut.pipe(
-      tap(() => navigationNavigate.next(Path.Feed)),
-      mapTo({ type: UserStatus.Unauthorized })
-    ),
-    userSet.pipe(map((user) => ({ type: UserStatus.Authorized, user }))),
-    token$.pipe(
-      filter(isPresent),
-      injectStore(store),
-      filter(
-        ([token, state]) =>
-          !(state.type === UserStatus.Authorized && state.user.token === token)
+export type UserEvents = {
+  logIn: LoginUser
+  logOut: unknown
+  set: User
+}
+
+export type UserSources = { token: AccessToken }
+
+export type UserSignals = SignalsOf<{
+  navigate: NavigateEventPayload
+  setToken: AccessToken
+}>
+
+export function createUser(
+  store: Store<UserStates>,
+  { logIn$, logOut$, set$, token$ }: ObservableOf<UserEvents & UserSources>,
+  { navigate, setToken }: UserSignals,
+  api: UserAndAuthenticationApi
+) {
+  return createRxState(
+    store,
+    merge<UserStates>(
+      logIn$.pipe(map((data) => ({ type: UserStatus.LogIn, data }))),
+      logIn$.pipe(
+        exhaustMap((user) => api.login({ body: { user } })),
+        userResponseToState
       ),
-      exhaustMap(() => userAndAuthenticationApi.getCurrentUser()),
-      userResponseToState
+      logOut$.pipe(
+        tap(() => navigate(Path.Feed)),
+        mapTo({ type: UserStatus.Unauthorized })
+      ),
+      set$.pipe(map((user) => ({ type: UserStatus.Authorized, user }))),
+      token$.pipe(
+        filter(isPresent),
+        injectStore(store),
+        filter(
+          ([token, state]) =>
+            !(
+              state.type === UserStatus.Authorized && state.user.token === token
+            )
+        ),
+        exhaustMap(() => api.getCurrentUser()),
+        userResponseToState
+      ),
+      token$.pipe(filter(isNull), mapTo({ type: UserStatus.Unauthorized }))
     ),
-    token$.pipe(filter(isNull), mapTo({ type: UserStatus.Unauthorized }))
-  ),
-  tap((state) => {
-    if (state.type === UserStatus.Authorized) {
-      tokenSet.next(state.user.token)
-    } else if (state.type === UserStatus.Unauthorized) {
-      tokenSet.next(null)
-    }
-  })
-)
+    tap((state) => {
+      if (state.type === UserStatus.Authorized) {
+        setToken(state.user.token)
+      } else if (state.type === UserStatus.Unauthorized) {
+        setToken(null)
+      }
+    })
+  )
+}
 
-export const isNotUnauthorized$ = user$.pipe(
-  map((state) => state.type !== UserStatus.Unauthorized)
-)
+export type IsNotUnauthorizeEvents = ObservableOf<{
+  user: UserStates
+}>
 
-export const isAuthorized$ = user$.pipe(
-  map((state) => state.type === UserStatus.Authorized),
-  distinctUntilChanged()
-)
+export function createIsNotUnauthorized({ user$ }: IsNotUnauthorizeEvents) {
+  return user$.pipe(map((state) => state.type !== UserStatus.Unauthorized))
+}

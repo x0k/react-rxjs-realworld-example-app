@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 
+import { ProfileFeedByType } from 'models/feed'
+
 import { Container } from 'components/container'
 import { Row } from 'components/row'
 
@@ -9,7 +11,6 @@ import { FeedContainer } from 'containers/feed'
 import { ProfileTabsContainer } from 'containers/profile-tabs'
 
 import { renderArticlePreview } from './common/render-article-preview'
-import { ProfileFeedByType } from 'models/feed'
 
 export default function ProfilePage() {
   const { username } = useParams()

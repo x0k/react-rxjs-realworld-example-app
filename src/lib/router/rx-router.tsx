@@ -3,7 +3,7 @@ import { BrowserHistory, Update } from 'history'
 import { Router as ReactRouter } from 'react-router-dom'
 import { Observable } from 'rxjs'
 
-import { useRxState } from 'lib/store-rx-state'
+import { useRxState } from 'lib/rx-store-react'
 
 export interface RouterProps {
   history: BrowserHistory

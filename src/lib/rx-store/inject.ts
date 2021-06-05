@@ -1,6 +1,7 @@
 import { Observable, of, OperatorFunction } from 'rxjs'
 import { map, switchMap } from 'rxjs/operators'
-import { Store } from './store'
+
+import { Store } from 'lib/store'
 
 export function injectStore<T, State>(
   store: Store<State>

@@ -1,36 +1,31 @@
 import React from 'react'
 
-import { useRxState } from 'lib/store-rx-state'
 import { createFormSubmitHandler, createFieldChangeHandlers } from 'lib/event'
+import { createStopSignalHooks } from 'lib/rx-store'
+import { useRxState } from 'lib/rx-store-react'
 
 import { Button, ButtonSize, ButtonVariant } from 'components/button'
 import { Form } from 'components/form'
 import { InputField } from 'components/input-field'
 import { ErrorsList } from 'components/errors-list'
 
-import {
-  registration$,
-  registrationChangeField,
-  registrationCleanup,
-  registrationSignUp,
-} from 'store/registration'
-import { createStopSignalHooks } from 'lib/store-rx-signals'
+import { registration } from 'store'
 
 const [onUsernameChange, onEmailChange, onPasswordChange] =
   createFieldChangeHandlers(
-    registrationChangeField,
+    registration.changeField,
     'username',
     'email',
     'password'
   )
 
-const submitHandler = createFormSubmitHandler(registrationSignUp)
+const submitHandler = createFormSubmitHandler(registration.signUp)
 
-const hooks = createStopSignalHooks(registrationCleanup)
+const hooks = createStopSignalHooks(registration.stop)
 
 export function RegistrationContainer() {
   const { email, errors, loading, password, username } = useRxState(
-    registration$,
+    registration.state$,
     hooks
   )
   return (

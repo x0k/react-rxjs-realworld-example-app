@@ -1,19 +1,19 @@
-import { Subject, merge } from 'rxjs'
+import { merge } from 'rxjs'
 import {
   exhaustMap,
   map,
   mapTo,
   tap,
-  withLatestFrom,
   takeUntil,
+  withLatestFrom,
 } from 'rxjs/operators'
+import { Update } from 'history'
 
-import { NewUser } from 'lib/conduit-client'
-import { createRxState } from 'lib/store-rx-state'
-import { userAndAuthenticationApi } from 'lib/api'
+import { NewUser, User, UserAndAuthenticationApi } from 'lib/conduit-client'
 import { ChangeFieldEventPayload } from 'lib/event'
 import { isLocationWithFromState } from 'lib/router'
-import { createMemoryStore } from 'lib/store'
+import { Store } from 'lib/store'
+import { SignalsOf, ObservableOf, createRxState } from 'lib/rx-store'
 
 import {
   createGenericAjaxErrorCatcherForReLoadableData,
@@ -21,20 +21,11 @@ import {
 } from 'models/re-loadable-data'
 import { Path } from 'models/path'
 
-import { userSet } from './user'
-import { navigation$, navigationNavigate } from './navigation'
+import { NavigateEventPayload } from './navigation'
 
 export type RegistrationState = NewUser & ReLoadableData
 
-export const registrationChangeField = new Subject<
-  ChangeFieldEventPayload<NewUser>
->()
-
-export const registrationSignUp = new Subject()
-
-export const registrationCleanup = new Subject()
-
-const initialState: RegistrationState = {
+export const initialRegistrationState: RegistrationState = {
   email: '',
   password: '',
   username: '',
@@ -42,32 +33,55 @@ const initialState: RegistrationState = {
   loading: false,
 }
 
-const store = createMemoryStore(initialState)
+export type RegistrationEvents = {
+  changeField: ChangeFieldEventPayload<NewUser>
+  signUp: unknown
+  stop: unknown
+}
 
-const catchGenericAjaxError =
-  createGenericAjaxErrorCatcherForReLoadableData(store)
+export type RegistrationSources = {
+  navigate: Update
+}
 
-export const registration$ = createRxState(
-  store,
-  merge(
-    registrationChangeField.pipe(
-      map(({ field, value }) => ({ ...store.state, [field]: value }))
+export type RegistrationSignals = SignalsOf<{
+  setUser: User
+  navigate: NavigateEventPayload
+}>
+
+export function createRegistration(
+  store: Store<RegistrationState>,
+  {
+    changeField$,
+    signUp$,
+    stop$,
+    navigate$,
+  }: ObservableOf<RegistrationEvents & RegistrationSources>,
+  { navigate, setUser }: RegistrationSignals,
+  api: UserAndAuthenticationApi
+) {
+  const catchGenericAjaxError =
+    createGenericAjaxErrorCatcherForReLoadableData(store)
+
+  return createRxState(
+    store,
+    merge(
+      changeField$.pipe(
+        map(({ field, value }) => ({ ...store.state, [field]: value }))
+      ),
+      signUp$.pipe(map(() => ({ ...store.state, loading: true }))),
+      signUp$.pipe(
+        exhaustMap(() => api.createUser({ body: { user: store.state } })),
+        withLatestFrom(navigate$),
+        tap(([{ user }, { location }]) => {
+          setUser(user)
+          navigate(
+            isLocationWithFromState(location) ? location.state.from : Path.Feed
+          )
+        }),
+        mapTo(initialRegistrationState),
+        catchGenericAjaxError
+      )
     ),
-    registrationSignUp.pipe(map(() => ({ ...store.state, loading: true }))),
-    registrationSignUp.pipe(
-      exhaustMap(() =>
-        userAndAuthenticationApi.createUser({ body: { user: store.state } })
-      ),
-      tap(({ user }) => userSet.next(user)),
-      withLatestFrom(navigation$),
-      tap(([, { location }]) =>
-        navigationNavigate.next(
-          isLocationWithFromState(location) ? location.state.from : Path.Feed
-        )
-      ),
-      mapTo(initialState),
-      catchGenericAjaxError
-    )
-  ),
-  takeUntil(registrationCleanup)
-)
+    takeUntil(stop$)
+  )
+}

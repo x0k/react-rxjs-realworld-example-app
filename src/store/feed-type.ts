@@ -1,9 +1,8 @@
-import { Subject } from 'rxjs'
 import { distinctUntilChanged } from 'rxjs/operators'
 
 import { SelectState, State } from 'lib/state'
-import { createMemoryStore } from 'lib/store'
-import { createRxState } from 'lib/store-rx-state'
+import { Store } from 'lib/store'
+import { ObservableOf, createRxState } from 'lib/rx-store'
 
 import { ProfileUsername } from 'models/profile'
 import { FeedType } from 'models/feed'
@@ -39,14 +38,13 @@ export function compareFeedState(a: FeedTypeStates, b: FeedTypeStates) {
   }
 }
 
-export const store = createMemoryStore<FeedTypeStates>({
-  type: FeedType.Global,
-})
+export type FeedTypeEvents = ObservableOf<{
+  set: FeedTypeStates
+}>
 
-export const feedTypeSet = new Subject<FeedTypeStates>()
-
-export const feedType$ = createRxState(
-  store,
-  feedTypeSet,
-  distinctUntilChanged(compareFeedState)
-)
+export function createFeedType(
+  store: Store<FeedTypeStates>,
+  { set$ }: FeedTypeEvents,
+) {
+  return createRxState(store, set$, distinctUntilChanged(compareFeedState))
+}

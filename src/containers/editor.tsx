@@ -1,8 +1,7 @@
 import React, { KeyboardEvent } from 'react'
 
-import { useRxState } from 'lib/store-rx-state'
 import { createFieldChangeHandlers, createFormSubmitHandler } from 'lib/event'
-import { useSignalsHooks } from 'lib/store-rx-signals'
+import { useRxState, useSignalsHooks } from 'lib/rx-store-react'
 
 import { ArticleSlug } from 'models/article'
 
@@ -16,19 +15,11 @@ import { Tag } from 'components/tag'
 import { Button, ButtonSize, ButtonVariant } from 'components/button'
 import { FormGroup } from 'components/form-group'
 
-import {
-  editor$,
-  editorLoadArticle,
-  editorChangeField,
-  editorPublishArticle,
-  editorAddTag,
-  editorRemoveTag,
-  editorCleanup,
-} from 'store/editor'
+import { editor } from 'store'
 
 const [onTitleChange, onDescriptionChange, onBodyChange, onTagChange] =
   createFieldChangeHandlers(
-    editorChangeField,
+    editor.changeField,
     'title',
     'description',
     'body',
@@ -38,18 +29,18 @@ const [onTitleChange, onDescriptionChange, onBodyChange, onTagChange] =
 const onTagKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
   if (e.key === 'Enter') {
     e.preventDefault()
-    editorAddTag.next()
+    editor.addTag(undefined)
   }
 }
 
-const submitHandler = createFormSubmitHandler(editorPublishArticle)
+const submitHandler = createFormSubmitHandler(editor.publish)
 
 export interface EditorContainerProps {
   slug?: ArticleSlug
 }
 
 export function EditorContainer({ slug }: EditorContainerProps) {
-  const hooks = useSignalsHooks(editorLoadArticle, editorCleanup, slug)
+  const hooks = useSignalsHooks(editor.loadArticle, editor.stop, slug)
   const {
     errors,
     loading,
@@ -58,7 +49,7 @@ export function EditorContainer({ slug }: EditorContainerProps) {
     description,
     title,
     tagList = [],
-  } = useRxState(editor$, hooks)
+  } = useRxState(editor.state$, hooks)
   return (
     <>
       {Object.keys(errors).length > 0 && <ErrorsList errors={errors} />}
@@ -100,7 +91,7 @@ export function EditorContainer({ slug }: EditorContainerProps) {
             {tagList.map((tag) => (
               <Tag as="span" key={tag}>
                 <i
-                  onClick={() => editorRemoveTag.next(tag)}
+                  onClick={() => editor.removeTag(tag)}
                   className="ion-close-round"
                 />
                 &nbsp;
