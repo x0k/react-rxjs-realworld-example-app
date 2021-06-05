@@ -10,11 +10,10 @@ import {
 import { Update } from 'history'
 
 import { NewUser, User, UserAndAuthenticationApi } from 'lib/conduit-client'
-import { createRxState } from 'lib/store-rx-state'
 import { ChangeFieldEventPayload } from 'lib/event'
 import { isLocationWithFromState } from 'lib/router'
 import { Store } from 'lib/store'
-import { ObservableOf, SignalsOf } from 'lib/store-rx-store'
+import { SignalsOf, ObservableOf, createRxState } from 'lib/rx-store'
 
 import {
   createGenericAjaxErrorCatcherForReLoadableData,

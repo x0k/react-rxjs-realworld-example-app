@@ -15,12 +15,11 @@ import {
   SingleArticleResponse,
   UpdateArticle,
 } from 'lib/conduit-client'
-import { createRxState } from 'lib/store-rx-state'
 import { partiallyFoldState, State } from 'lib/state'
 import { ChangeFieldEventPayload } from 'lib/event'
 import { isTruly } from 'lib/types'
 import { Store } from 'lib/store'
-import { ObservableOf, SignalsOf } from 'lib/store-rx-store'
+import { ObservableOf, SignalsOf, createRxState } from 'lib/rx-store'
 
 import { getArticlePath } from 'models/path'
 import { ArticleTag, ArticleSlug } from 'models/article'

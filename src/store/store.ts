@@ -2,7 +2,7 @@ import { Observable, Subscription } from 'rxjs'
 import { BrowserHistory, Update } from 'history'
 
 import { createLocalStorageStore, createMemoryStore } from 'lib/store'
-import { createRxStore } from 'lib/store-rx-store'
+import { createRxStore } from 'lib/rx-store'
 import { history } from 'lib/history'
 import {
   articleApi,

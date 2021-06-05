@@ -1,11 +1,11 @@
 import { merge } from 'rxjs'
 import { filter, map, mapTo, switchMap, takeUntil } from 'rxjs/operators'
 
-import { createRxState } from 'lib/store-rx-state'
 import { TagsResponse } from 'lib/conduit-client'
 import { defaultApi } from 'lib/api'
 import { isSpecificState } from 'lib/state'
 import { Store } from 'lib/store'
+import { ObservableOf, createRxState } from 'lib/rx-store'
 
 import { GenericAjaxError } from 'models/errors'
 import {
@@ -13,7 +13,6 @@ import {
   LoadableDataStates,
   LoadableDataStatus,
 } from 'models/loadable-data'
-import { ObservableOf } from 'lib/store-rx-store'
 
 export type Tag = string
 
@@ -28,7 +27,7 @@ export type TagsEvents = ObservableOf<{
 
 export function createTags(
   store: Store<TagsStates>,
-  { load$, stop$ }: TagsEvents,
+  { load$, stop$ }: TagsEvents
 ) {
   return createRxState<TagsStates>(
     store,

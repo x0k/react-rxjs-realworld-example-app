@@ -1,11 +1,9 @@
 import { merge } from 'rxjs'
 import { exhaustMap, map, switchMap, takeUntil } from 'rxjs/operators'
 
-import { createRxState } from 'lib/store-rx-state'
 import { Comment, CommentsApi } from 'lib/conduit-client'
-import { injectStore } from 'lib/store-rx-inject'
 import { Store } from 'lib/store'
-import { ObservableOf } from 'lib/store-rx-store'
+import { ObservableOf, createRxState, injectStore } from 'lib/rx-store'
 
 import { ArticleSlug } from 'models/article'
 import {

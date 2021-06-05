@@ -1,6 +1,6 @@
-import { RxHooks } from 'lib/store-rx-state'
+import { RxHooks } from './hooks'
 
-import { HookAction } from './model'
+export type HookAction<T> = (value?: T) => void
 
 export interface CreateSignalsHooksOptions<StartSignal, StopSignal> {
   start: HookAction<StartSignal>
@@ -14,7 +14,7 @@ export function createSignalsHooks<StartSignal, StopSignal>({
   stop,
   startPayload,
   stopPayload,
-}: CreateSignalsHooksOptions<StartSignal, StopSignal>): RxHooks<any, any> {
+}: CreateSignalsHooksOptions<StartSignal, StopSignal>): RxHooks {
   return {
     afterSubscribe: () => start(startPayload),
     beforeUnsubscribe: () => stop(stopPayload),
@@ -24,7 +24,7 @@ export function createSignalsHooks<StartSignal, StopSignal>({
 export function createStartSignalHooks<StartSignal>(
   start: HookAction<StartSignal>,
   payload?: StartSignal
-): RxHooks<any, any> {
+): RxHooks {
   return {
     afterSubscribe: () => start(payload),
   }
@@ -33,7 +33,7 @@ export function createStartSignalHooks<StartSignal>(
 export function createStopSignalHooks<StopSignal>(
   stop: HookAction<StopSignal>,
   payload?: StopSignal
-): RxHooks<any, any> {
+): RxHooks {
   return {
     beforeUnsubscribe: () => stop(payload),
   }

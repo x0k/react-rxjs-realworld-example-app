@@ -2,13 +2,12 @@ import { distinctUntilChanged } from 'rxjs/operators'
 
 import { SelectState, State } from 'lib/state'
 import { Store } from 'lib/store'
-import { createRxState } from 'lib/store-rx-state'
+import { ObservableOf, createRxState } from 'lib/rx-store'
 
 import { ProfileUsername } from 'models/profile'
 import { FeedType } from 'models/feed'
 
 import { Tag } from './tags'
-import { ObservableOf } from 'lib/store-rx-store'
 
 export type FeedTypeStates =
   | State<FeedType.Global>

@@ -7,12 +7,15 @@ import {
   UserAndAuthenticationApi,
   UserResponse,
 } from 'lib/conduit-client'
-import { createRxState } from 'lib/store-rx-state'
 import { isNull, isPresent } from 'lib/types'
 import { State } from 'lib/state'
-import { injectStore } from 'lib/store-rx-inject'
 import { Store } from 'lib/store'
-import { ObservableOf, SignalsOf } from 'lib/store-rx-store'
+import {
+  SignalsOf,
+  ObservableOf,
+  createRxState,
+  injectStore,
+} from 'lib/rx-store'
 
 import { GenericAjaxError } from 'models/errors'
 import { Path } from 'models/path'

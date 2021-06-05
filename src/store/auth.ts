@@ -10,11 +10,10 @@ import {
 import { Update } from 'history'
 
 import { LoginUser, User, UserAndAuthenticationApi } from 'lib/conduit-client'
-import { createRxState } from 'lib/store-rx-state'
 import { ChangeFieldEventPayload } from 'lib/event'
 import { isLocationWithFromState } from 'lib/router'
-import { ObservableOf, SignalsOf } from 'lib/store-rx-store'
 import { Store } from 'lib/store'
+import { SignalsOf, ObservableOf, createRxState } from 'lib/rx-store'
 
 import { Path } from 'models/path'
 import {

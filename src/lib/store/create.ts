@@ -1,7 +1,4 @@
-export interface Store<State> {
-  state: State
-  set: (value: State) => void
-}
+import { Store } from './model'
 
 export function createStorageStoreFactory(storage: Storage) {
   return <S>(key: string, defaultState: S): Store<S> => {

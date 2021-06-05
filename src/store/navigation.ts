@@ -2,9 +2,8 @@ import { EMPTY, merge } from 'rxjs'
 import { switchMapTo, tap } from 'rxjs/operators'
 import { BrowserHistory, State, To, Update } from 'history'
 
-import { createRxState } from 'lib/store-rx-state'
 import { Store } from 'lib/store'
-import { ObservableOf } from 'lib/store-rx-store'
+import { ObservableOf, createRxState } from 'lib/rx-store'
 
 export type NavigateEventPayload =
   | To

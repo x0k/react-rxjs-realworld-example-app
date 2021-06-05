@@ -14,8 +14,8 @@ import {
   FavoritesApi,
   MultipleArticlesResponse,
 } from 'lib/conduit-client'
-import { createRxState } from 'lib/store-rx-state'
 import { Store } from 'lib/store'
+import { ObservableOf, createRxState } from 'lib/rx-store'
 
 import {
   createGenericAjaxErrorCatcherForReLoadableData,
@@ -24,7 +24,6 @@ import {
 import { FeedType } from 'models/feed'
 
 import { FeedTypeStates } from './feed-type'
-import { ObservableOf } from 'lib/store-rx-store'
 
 export type FeedState = ReLoadableData & MultipleArticlesResponse
 

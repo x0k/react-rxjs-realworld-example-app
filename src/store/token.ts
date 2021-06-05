@@ -1,8 +1,7 @@
 import { distinctUntilChanged } from 'rxjs/operators'
 
-import { createRxState } from 'lib/store-rx-state'
 import { Store } from 'lib/store'
-import { ObservableOf } from 'lib/store-rx-store'
+import { createRxState, ObservableOf } from 'lib/rx-store'
 
 export type AccessToken = string | null
 

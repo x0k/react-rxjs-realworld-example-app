@@ -1,5 +1,6 @@
 import { Observable, Subject } from 'rxjs'
-import { Store } from './store'
+
+import { Store } from 'lib/store'
 
 export type ObservableOf<T> = {
   [K in keyof T as `${K & string}$`]: Observable<T[K]>
@@ -33,7 +34,11 @@ export function createSignals<S, Subjects extends SubjectsOf<S>>(
   )
 }
 
-export function createRxStore<State, Events, Args extends ReadonlyArray<any> = []>(
+export function createRxStore<
+  State,
+  Events,
+  Args extends ReadonlyArray<any> = []
+>(
   createRxState: (
     store: Store<State>,
     events: ObservableOf<Events>,
@@ -49,7 +54,7 @@ export function createRxStore<
   State,
   Events,
   Sources,
-  Args extends ReadonlyArray<any> = [],
+  Args extends ReadonlyArray<any> = []
 >(
   createRxState: (
     store: Store<State>,
@@ -67,7 +72,7 @@ export function createRxStore<
   State,
   Events,
   Sources = {},
-  Args extends ReadonlyArray<any> = [],
+  Args extends ReadonlyArray<any> = []
 >(
   createRxState: (
     store: Store<State>,

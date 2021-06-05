@@ -3,11 +3,10 @@ import { exhaustMap, filter, map, tap, takeUntil } from 'rxjs/operators'
 
 import { UpdateUser, User, UserAndAuthenticationApi } from 'lib/conduit-client'
 import { ChangeFieldEventPayload } from 'lib/event'
-import { createRxState } from 'lib/store-rx-state'
 import { isSpecificState } from 'lib/state'
 import { omitFalsyProps } from 'lib/types'
-import { ObservableOf, SignalsOf } from 'lib/store-rx-store'
 import { Store } from 'lib/store'
+import { SignalsOf, ObservableOf, createRxState } from 'lib/rx-store'
 
 import {
   createGenericAjaxErrorCatcherForReLoadableData,

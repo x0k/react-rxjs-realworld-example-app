@@ -2,10 +2,9 @@ import { merge } from 'rxjs'
 import { distinctUntilChanged, mapTo } from 'rxjs/operators'
 
 import { Store } from 'lib/store'
-import { createRxState } from 'lib/store-rx-state'
+import { ObservableOf, createRxState } from 'lib/rx-store'
 
 import { FeedTypeStates } from './feed-type'
-import { ObservableOf } from 'lib/store-rx-store'
 
 export type FeedPageEvents = {
   set: number

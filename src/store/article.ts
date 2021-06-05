@@ -17,10 +17,9 @@ import {
   ProfileResponse,
   SingleArticleResponse,
 } from 'lib/conduit-client'
-import { createRxState } from 'lib/store-rx-state'
 import { isSpecificState } from 'lib/state'
 import { Store } from 'lib/store'
-import { ObservableOf } from 'lib/store-rx-store'
+import { ObservableOf, createRxState } from 'lib/rx-store'
 
 import {
   catchGenericAjaxErrorForLoadableData,

@@ -17,8 +17,3 @@ export type RxStates<T, E> =
   | State<RxStateStatus.IDLE, { data: T }>
   | State<RxStateStatus.Error, { error: E }>
   | State<RxStateStatus.Complete>
-
-export interface RxHooks<T, E> {
-  afterSubscribe?: (state: RxStates<T, E>) => void
-  beforeUnsubscribe?: (state: RxStates<T, E>) => void
-}

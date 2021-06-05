@@ -1,11 +1,11 @@
 import { useMemo } from 'react'
 
-import { HookAction } from './model'
+import { HookAction } from 'lib/rx-store'
 import {
   createSignalsHooks,
   createStartSignalHooks,
   createStopSignalHooks,
-} from './rx-signals'
+} from 'lib/rx-store'
 
 export function useSignalsHooks<StartSignal, StopSignal>(
   start: HookAction<StartSignal>,
