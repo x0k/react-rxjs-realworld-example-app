@@ -183,7 +183,7 @@ export const profile = createRxStore<
   { user$: user.state$ }
 )(['load', 'stop', 'toggleFollowing'], profileApi)
 
-export const isCurrentUser = createIsCurrentUser({
+export const isCurrentUser$ = createIsCurrentUser({
   profile$: profile.state$,
   user$: user.state$,
 })

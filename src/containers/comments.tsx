@@ -2,10 +2,9 @@ import React, { ChangeEvent, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 
 import { Article } from 'lib/conduit-client'
-import { useRxState } from 'lib/store-rx-state'
 import { matcher } from 'lib/state'
 import { createFormSubmitHandler } from 'lib/event'
-import { useSignalsHooks } from 'lib/store-rx-signals'
+import { useRxState, useSignalsHooks } from 'lib/rx-store-react'
 
 import { Path } from 'models/path'
 
@@ -15,31 +14,29 @@ import { Button, ButtonVariant } from 'components/button'
 import { Form } from 'components/form'
 import { Textarea } from 'components/textarea'
 
-import {
-  comments$,
-  commentsChangeComment,
-  commentsCleanup,
-  commentsDeleteComment,
-  commentsLoad,
-  commentsPostComment,
-} from 'store/comments'
-import { user$, UserStates, UserStatus } from 'store/user'
+import { comments, user } from 'store'
+import { UserStates, UserStatus } from 'store/user'
 
 export interface CommentsContainerProps {
   article: Article
 }
 
 const onCommentChange = (e: ChangeEvent<HTMLTextAreaElement>) =>
-  commentsChangeComment.next(e.target.value)
+  comments.changeComment(e.target.value)
 
-const onPostComment = createFormSubmitHandler(commentsPostComment)
+const onPostComment = createFormSubmitHandler(comments.postComment)
 
 export function CommentsContainer({
   article: { slug },
 }: CommentsContainerProps) {
-  const hooks = useSignalsHooks(commentsLoad, commentsCleanup, slug)
-  const { comment, comments, errors, loading } = useRxState(comments$, hooks)
-  const userState = useRxState(user$)
+  const hooks = useSignalsHooks(comments.load, comments.stop, slug)
+  const {
+    comment,
+    comments: commentsList,
+    errors,
+    loading,
+  } = useRxState(comments.state$, hooks)
+  const userState = useRxState(user.state$)
   const userMatcher = useMemo(
     () => matcher<UserStatus, UserStates>(userState),
     [userState]
@@ -64,7 +61,11 @@ export function CommentsContainer({
               className="comment-author-img"
               src={userMatcher.state.user.image}
             />
-            <Button variant={ButtonVariant.Primary} type="submit" disabled={loading} >
+            <Button
+              variant={ButtonVariant.Primary}
+              type="submit"
+              disabled={loading}
+            >
               Post Comment
             </Button>
           </div>
@@ -78,7 +79,7 @@ export function CommentsContainer({
         </p>
       )}
       <List>
-        {comments.map((comment) => {
+        {commentsList.map((comment) => {
           const { id, body, author, createdAt } = comment
           return (
             <div className="card" key={id}>
@@ -104,7 +105,7 @@ export function CommentsContainer({
                   userMatcher.state.user.username === author.username && (
                     <span
                       className="mod-options"
-                      onClick={() => commentsDeleteComment.next(comment)}
+                      onClick={() => comments.deleteComment(comment)}
                     >
                       <i className="ion-trash-a" />
                     </span>

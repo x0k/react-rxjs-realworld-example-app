@@ -2,13 +2,11 @@ import React from 'react'
 
 import { Button, ButtonVariant } from 'components/button'
 
-import { userLogOut } from 'store/user'
-
-const onLogOut = () => userLogOut.next()
+import { user } from 'store'
 
 export function LogoutContainer() {
   return (
-    <Button variant={ButtonVariant.OutlineDanger} onClick={onLogOut}>
+    <Button variant={ButtonVariant.OutlineDanger} onClick={user.logOut}>
       Or click here to logout.
     </Button>
   )

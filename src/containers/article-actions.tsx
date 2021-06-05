@@ -2,26 +2,17 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 
 import { Article } from 'lib/conduit-client'
-import { useRxState } from 'lib/store-rx-state'
+import { useRxState } from 'lib/rx-store-react'
 
 import { Path } from 'models/path'
 
 import { Button, ButtonSize, ButtonVariant } from 'components/button'
 
-import {
-  articleDelete,
-  articleToggleFavorite,
-  articleToggleFollow,
-  isAuthor$,
-} from 'store/article'
+import { article, isAuthor$ } from 'store'
 
 export interface ArticleActionsContainerProps {
   article: Article
 }
-
-const onDelete = () => articleDelete.next()
-const onToggleFollow = () => articleToggleFollow.next()
-const onToggleFavorite = () => articleToggleFavorite.next()
 
 export function ArticleActionsContainer({
   article: {
@@ -40,7 +31,7 @@ export function ArticleActionsContainer({
         </Button>
       </Link>
       &nbsp;
-      <Button variant={ButtonVariant.OutlineDanger} onClick={onDelete}>
+      <Button variant={ButtonVariant.OutlineDanger} onClick={article.delete}>
         <i className="ion-trash-a" /> Delete Article
       </Button>
     </span>
@@ -51,7 +42,7 @@ export function ArticleActionsContainer({
         variant={
           following ? ButtonVariant.Secondary : ButtonVariant.OutlineSecondary
         }
-        onClick={onToggleFollow}
+        onClick={article.toggleFollow}
       >
         <i className="ion-plus-round" /> {following ? 'Unfollow' : 'Follow'}
         &nbsp;
@@ -63,7 +54,7 @@ export function ArticleActionsContainer({
         variant={
           favorited ? ButtonVariant.Primary : ButtonVariant.OutlinePrimary
         }
-        onClick={onToggleFavorite}
+        onClick={article.toggleFavorite}
       >
         <i className="ion-heart" /> {favorited ? 'Unfavorite' : 'Favorite'}
         &nbsp; Article ({favoritesCount})

@@ -1,22 +1,17 @@
 import React from 'react'
 
-import { useRxState } from 'lib/store-rx-state'
+import { createStopSignalHooks } from 'lib/rx-store'
+import { useRxState } from 'lib/rx-store-react'
 import { createFieldChangeHandlers, createFormSubmitHandler } from 'lib/event'
-import { createStopSignalHooks } from 'lib/store-rx-signals'
 
 import { ErrorsList } from 'components/errors-list'
 import { Form } from 'components/form'
 import { InputField } from 'components/input-field'
 import { TextField } from 'components/text-field'
 import { Button, ButtonSize, ButtonVariant } from 'components/button'
-
-import {
-  settings$,
-  settingsChangeField,
-  settingsCleanup,
-  settingsUpdate,
-} from 'store/settings'
 import { FormControlSize } from 'components/form-control'
+
+import { settings } from 'store'
 
 const [
   onImageChange,
@@ -25,7 +20,7 @@ const [
   onEmailChange,
   onPasswordChange,
 ] = createFieldChangeHandlers(
-  settingsChangeField,
+  settings.changeField,
   'image',
   'username',
   'bio',
@@ -33,13 +28,13 @@ const [
   'password'
 )
 
-const submitHandler = createFormSubmitHandler(settingsUpdate)
+const submitHandler = createFormSubmitHandler(settings.update)
 
-const hooks = createStopSignalHooks(settingsCleanup)
+const hooks = createStopSignalHooks(settings.stop)
 
 export function SettingsContainer() {
   const { errors, loading, bio, email, image, password, username } = useRxState(
-    settings$,
+    settings.state$,
     hooks
   )
   return (
