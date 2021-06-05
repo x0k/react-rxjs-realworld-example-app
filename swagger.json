@@ -464,6 +464,11 @@
         "tags": [
           "Articles"
         ],
+        "security": [
+          {
+            "Token": []
+          }
+        ],
         "operationId": "GetArticle",
         "parameters": [
           {
@@ -580,6 +585,11 @@
         "description": "Get the comments for an article. Auth is optional",
         "tags": [
           "Comments"
+        ],
+        "security": [
+          {
+            "Token": []
+          }
         ],
         "operationId": "GetArticleComments",
         "parameters": [
