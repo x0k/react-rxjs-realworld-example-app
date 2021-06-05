@@ -5,8 +5,7 @@ import { UpdateUser, User, UserAndAuthenticationApi } from 'lib/conduit-client'
 import { ChangeFieldEventPayload } from 'lib/event'
 import { isSpecificState } from 'lib/state'
 import { omitFalsyProps } from 'lib/types'
-import { Store } from 'lib/store'
-import { SignalsOf, ObservableOf, createRxState } from 'lib/rx-store'
+import { SignalsOf, createRxStateFactory } from 'lib/rx-store'
 
 import {
   createGenericAjaxErrorCatcherForReLoadableData,
@@ -39,21 +38,17 @@ export type SettingsSignals = SignalsOf<{
   setUser: User
 }>
 
-export function createSettings(
-  store: Store<SettingsState>,
-  {
-    changeField$,
-    update$,
-    user$,
-    stop$,
-  }: ObservableOf<SettingsEvents & SettingsSources>,
-  { setUser }: SettingsSignals,
-  api: UserAndAuthenticationApi
-) {
+export const createSettings = createRxStateFactory<
+  SettingsState,
+  SettingsEvents & SettingsSources,
+  [
+    SettingsSignals,
+    UserAndAuthenticationApi
+  ]
+>((store, { changeField$, update$, user$, stop$ }, { setUser }, api) => {
   const catchGenericAjaxError =
     createGenericAjaxErrorCatcherForReLoadableData(store)
-  return createRxState<SettingsState>(
-    store,
+  return [
     merge(
       changeField$.pipe(
         map(({ field, value }) => ({ ...store.state, [field]: value }))
@@ -62,7 +57,9 @@ export function createSettings(
       update$.pipe(
         exhaustMap(() =>
           api.updateCurrentUser({
-            body: { user: omitFalsyProps(store.state as Record<string, any>) },
+            body: {
+              user: omitFalsyProps(store.state as Record<string, any>),
+            },
           })
         ),
         tap(({ user }) => setUser(user)),
@@ -77,6 +74,6 @@ export function createSettings(
         }))
       )
     ),
-    takeUntil(stop$)
-  )
-}
+    takeUntil(stop$),
+  ]
+})

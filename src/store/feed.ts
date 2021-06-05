@@ -16,7 +16,11 @@ import {
   MultipleArticlesResponse,
 } from 'lib/conduit-client'
 import { Store } from 'lib/store'
-import { ObservableOf, createRxState, SignalsOf } from 'lib/rx-store'
+import {
+  ObservableOf,
+  SignalsOf,
+  createRxStateFactory,
+} from 'lib/rx-store'
 
 import {
   createGenericAjaxErrorCatcherForReLoadableData,
@@ -51,73 +55,78 @@ export type FeedSignals = SignalsOf<{
   setFeedType: FeedTypeStates
 }>
 
-export function createFeed(
-  store: Store<FeedState>,
-  {
-    feedPage$,
-    feedType$,
-    stop$,
-    toggleFavorite$,
-  }: ObservableOf<FeedEvents & FeedSources>,
-  { setFeedType }: FeedSignals,
-  api: ArticlesApi,
-  favoriteApi: FavoritesApi
-) {
-  const catchGenericAjaxError =
-    createGenericAjaxErrorCatcherForReLoadableData(store)
-  const knownFeedType$ = filter<FeedTypeStates>(
-    (state) => state.type !== FeedType.Unknown
-  )(feedType$)
-  const pageAndType$ = combineLatest([feedPage$, knownFeedType$])
-  return createRxState<FeedState>(
-    store,
-    merge<FeedState>(
-      knownFeedType$.pipe(mapTo(initialFeedState)),
-      pageAndType$.pipe(map(() => ({ ...store.state, loading: true }))),
-      pageAndType$.pipe(
-        switchMap(([page, feedType]) => {
-          const payload = {
-            ...feedType,
-            limit: feedPerPage,
-            offset: (page - 1) * feedPerPage,
-          }
-          return feedType.type === FeedType.Your
-            ? api.getArticlesFeed(payload)
-            : api.getArticles(payload)
-        }),
-        map<MultipleArticlesResponse, FeedState>((data) => ({
-          ...store.state,
-          ...data,
-          loading: false,
-          errors: {},
-        })),
-        catchGenericAjaxError
-      ),
-      toggleFavorite$.pipe(
-        exhaustMap(({ favorited, slug }) =>
-          favorited
-            ? favoriteApi.deleteArticleFavorite({ slug })
-            : favoriteApi.createArticleFavorite({ slug })
+export const createFeed = createRxStateFactory<
+  FeedState,
+  FeedEvents & FeedSources,
+  [FeedSignals, ArticlesApi, FavoritesApi]
+>(
+  (
+    store: Store<FeedState>,
+    {
+      feedPage$,
+      feedType$,
+      stop$,
+      toggleFavorite$,
+    }: ObservableOf<FeedEvents & FeedSources>,
+    { setFeedType }: FeedSignals,
+    api: ArticlesApi,
+    favoriteApi: FavoritesApi
+  ) => {
+    const catchGenericAjaxError =
+      createGenericAjaxErrorCatcherForReLoadableData(store)
+    const knownFeedType$ = filter<FeedTypeStates>(
+      (state) => state.type !== FeedType.Unknown
+    )(feedType$)
+    const pageAndType$ = combineLatest([feedPage$, knownFeedType$])
+    return [
+      merge<FeedState>(
+        knownFeedType$.pipe(mapTo(initialFeedState)),
+        pageAndType$.pipe(map(() => ({ ...store.state, loading: true }))),
+        pageAndType$.pipe(
+          switchMap(([page, feedType]) => {
+            const payload = {
+              ...feedType,
+              limit: feedPerPage,
+              offset: (page - 1) * feedPerPage,
+            }
+            return feedType.type === FeedType.Your
+              ? api.getArticlesFeed(payload)
+              : api.getArticles(payload)
+          }),
+          map<MultipleArticlesResponse, FeedState>((data) => ({
+            ...store.state,
+            ...data,
+            loading: false,
+            errors: {},
+          })),
+          catchGenericAjaxError
         ),
-        map(({ article }) => {
-          const { articles, ...rest } = store.state
-          return {
-            ...rest,
-            articles: articles.map((a) =>
-              a.slug === article.slug ? article : a
-            ),
-          }
-        }),
-        catchGenericAjaxError
-      )
-    ),
-    takeUntil(
-      stop$.pipe(
-        tap(() => {
-          store.set(initialFeedState)
-          setFeedType(initialFeedTypeState)
-        })
-      )
-    )
-  )
-}
+        toggleFavorite$.pipe(
+          exhaustMap(({ favorited, slug }) =>
+            favorited
+              ? favoriteApi.deleteArticleFavorite({ slug })
+              : favoriteApi.createArticleFavorite({ slug })
+          ),
+          map(({ article }) => {
+            const { articles, ...rest } = store.state
+            return {
+              ...rest,
+              articles: articles.map((a) =>
+                a.slug === article.slug ? article : a
+              ),
+            }
+          }),
+          catchGenericAjaxError
+        )
+      ),
+      takeUntil(
+        stop$.pipe(
+          tap(() => {
+            store.set(initialFeedState)
+            setFeedType(initialFeedTypeState)
+          })
+        )
+      ),
+    ]
+  }
+)

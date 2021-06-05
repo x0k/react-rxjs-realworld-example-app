@@ -2,8 +2,7 @@ import { EMPTY, merge } from 'rxjs'
 import { switchMapTo, tap } from 'rxjs/operators'
 import { BrowserHistory, State, To, Update } from 'history'
 
-import { Store } from 'lib/store'
-import { ObservableOf, createRxState } from 'lib/rx-store'
+import { createRxStateFactory } from 'lib/rx-store'
 
 export type NavigateEventPayload =
   | To
@@ -21,26 +20,23 @@ export type NavigationSources = {
   update: Update
 }
 
-export function createNavigation(
-  store: Store<Update>,
-  { navigate$, update$ }: ObservableOf<NavigationEvents & NavigationSources>,
-  history: BrowserHistory
-) {
-  return createRxState(
-    store,
-    merge(
-      update$,
-      navigate$.pipe(
-        tap((place) =>
-          typeof place === 'string' || !('to' in place)
-            ? history.push(place)
-            : (place.replace ? history.replace : history.push)(
-                place.to,
-                place.state
-              )
-        ),
-        switchMapTo(EMPTY)
-      )
+export const createNavigation = createRxStateFactory<
+  Update,
+  NavigationEvents & NavigationSources,
+  [BrowserHistory]
+>((store, { navigate$, update$ }, history) => [
+  merge(
+    update$,
+    navigate$.pipe(
+      tap((place) =>
+        typeof place === 'string' || !('to' in place)
+          ? history.push(place)
+          : (place.replace ? history.replace : history.push)(
+              place.to,
+              place.state
+            )
+      ),
+      switchMapTo(EMPTY)
     )
-  )
-}
+  ),
+])
