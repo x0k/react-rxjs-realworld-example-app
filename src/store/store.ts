@@ -20,7 +20,6 @@ import {
 
 import { TOKEN_KEY } from 'models/app'
 import { LoadableDataStatus } from 'models/loadable-data'
-import { FeedType } from 'models/feed'
 
 import {
   createNavigation,
@@ -41,11 +40,12 @@ import { createTags, TagsStates } from './tags'
 import {
   createFeed,
   FeedEvents,
+  FeedSignals,
   FeedSources,
   FeedState,
   initialFeedState,
 } from './feed'
-import { createFeedType, FeedTypeStates } from './feed-type'
+import { createFeedType, initialFeedTypeState } from './feed-type'
 import { createFeedPage, FeedPageEvents, FeedPageSources } from './feed-page'
 import {
   AuthEvents,
@@ -123,9 +123,7 @@ export const tags = createRxStore(
 
 export const feedType = createRxStore(
   createFeedType,
-  createMemoryStore<FeedTypeStates>({
-    type: FeedType.Global,
-  })
+  createMemoryStore(initialFeedTypeState)
 )(['set'])
 
 export const feedPage = createRxStore<number, FeedPageEvents, FeedPageSources>(
@@ -138,11 +136,16 @@ export const feed = createRxStore<
   FeedState,
   FeedEvents,
   FeedSources,
-  [ArticlesApi, FavoritesApi]
+  [FeedSignals, ArticlesApi, FavoritesApi]
 >(createFeed, createMemoryStore(initialFeedState), {
   feedPage$: feedPage.state$,
   feedType$: feedType.state$,
-})(['stop', 'toggleFavorite'], articleApi, favoriteApi)
+})(
+  ['stop', 'toggleFavorite'],
+  { setFeedType: feedType.set },
+  articleApi,
+  favoriteApi
+)
 
 export const auth = createRxStore<
   AuthState,

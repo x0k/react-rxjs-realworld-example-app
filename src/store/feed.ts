@@ -6,6 +6,7 @@ import {
   tap,
   mapTo,
   switchMap,
+  filter,
 } from 'rxjs/operators'
 
 import {
@@ -15,7 +16,7 @@ import {
   MultipleArticlesResponse,
 } from 'lib/conduit-client'
 import { Store } from 'lib/store'
-import { ObservableOf, createRxState } from 'lib/rx-store'
+import { ObservableOf, createRxState, SignalsOf } from 'lib/rx-store'
 
 import {
   createGenericAjaxErrorCatcherForReLoadableData,
@@ -23,7 +24,7 @@ import {
 } from 'models/re-loadable-data'
 import { FeedType } from 'models/feed'
 
-import { FeedTypeStates } from './feed-type'
+import { FeedTypeStates, initialFeedTypeState } from './feed-type'
 
 export type FeedState = ReLoadableData & MultipleArticlesResponse
 
@@ -46,6 +47,10 @@ export type FeedSources = {
   feedPage: number
 }
 
+export type FeedSignals = SignalsOf<{
+  setFeedType: FeedTypeStates
+}>
+
 export function createFeed(
   store: Store<FeedState>,
   {
@@ -54,17 +59,20 @@ export function createFeed(
     stop$,
     toggleFavorite$,
   }: ObservableOf<FeedEvents & FeedSources>,
+  { setFeedType }: FeedSignals,
   api: ArticlesApi,
   favoriteApi: FavoritesApi
 ) {
   const catchGenericAjaxError =
     createGenericAjaxErrorCatcherForReLoadableData(store)
-
-  const pageAndType$ = combineLatest([feedPage$, feedType$])
+  const knownFeedType$ = filter<FeedTypeStates>(
+    (state) => state.type !== FeedType.Unknown
+  )(feedType$)
+  const pageAndType$ = combineLatest([feedPage$, knownFeedType$])
   return createRxState<FeedState>(
     store,
     merge<FeedState>(
-      feedType$.pipe(mapTo(initialFeedState)),
+      knownFeedType$.pipe(mapTo(initialFeedState)),
       pageAndType$.pipe(map(() => ({ ...store.state, loading: true }))),
       pageAndType$.pipe(
         switchMap(([page, feedType]) => {
@@ -103,6 +111,13 @@ export function createFeed(
         catchGenericAjaxError
       )
     ),
-    takeUntil(stop$.pipe(tap(() => store.set(initialFeedState))))
+    takeUntil(
+      stop$.pipe(
+        tap(() => {
+          store.set(initialFeedState)
+          setFeedType(initialFeedTypeState)
+        })
+      )
+    )
   )
 }

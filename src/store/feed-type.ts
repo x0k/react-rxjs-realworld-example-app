@@ -10,11 +10,16 @@ import { FeedType } from 'models/feed'
 import { Tag } from './tags'
 
 export type FeedTypeStates =
+  | State<FeedType.Unknown>
   | State<FeedType.Global>
   | State<FeedType.ByTag, { tag: Tag }>
   | State<FeedType.ByAuthor, { author: ProfileUsername }>
   | State<FeedType.Favorite, { favorited: ProfileUsername }>
   | State<FeedType.Your>
+
+export const initialFeedTypeState: FeedTypeStates = {
+  type: FeedType.Unknown,
+}
 
 export function compareFeedState(a: FeedTypeStates, b: FeedTypeStates) {
   if (a.type !== b.type) {
@@ -44,7 +49,7 @@ export type FeedTypeEvents = ObservableOf<{
 
 export function createFeedType(
   store: Store<FeedTypeStates>,
-  { set$ }: FeedTypeEvents,
+  { set$ }: FeedTypeEvents
 ) {
   return createRxState(store, set$, distinctUntilChanged(compareFeedState))
 }

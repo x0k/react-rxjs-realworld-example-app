@@ -1,4 +1,5 @@
 export enum FeedType {
+  Unknown = 'unknown',
   Global = 'global',
   ByTag = 'byTag',
   ByAuthor = 'byAuthor',
