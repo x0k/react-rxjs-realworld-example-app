@@ -1,11 +1,11 @@
-import { merge, Subject } from 'rxjs'
+import { merge } from 'rxjs'
 import { exhaustMap, map, switchMap, takeUntil } from 'rxjs/operators'
 
 import { createRxState } from 'lib/store-rx-state'
-import { Comment } from 'lib/conduit-client'
-import { commentsApi } from 'lib/api'
+import { Comment, CommentsApi } from 'lib/conduit-client'
 import { injectStore } from 'lib/store-rx-inject'
-import { createMemoryStore } from 'lib/store'
+import { Store } from 'lib/store'
+import { ObservableOf } from 'lib/store-rx-store'
 
 import { ArticleSlug } from 'models/article'
 import {
@@ -19,7 +19,7 @@ export type CommentsState = ReLoadableData & {
   slug: ArticleSlug
 }
 
-const initialState: CommentsState = {
+export const initialCommentsState: CommentsState = {
   loading: false,
   errors: {},
   comment: '',
@@ -27,79 +27,87 @@ const initialState: CommentsState = {
   slug: '',
 }
 
-export const commentsLoad = new Subject<ArticleSlug>()
+export type CommentsEvents = ObservableOf<{
+  load: ArticleSlug
+  stop: unknown
+  changeComment: string
+  postComment: unknown
+  deleteComment: Comment
+}>
 
-export const commentsCleanup = new Subject()
+export function createComments(
+  store: Store<CommentsState>,
+  {
+    changeComment$,
+    deleteComment$,
+    load$,
+    postComment$,
+    stop$,
+  }: CommentsEvents,
+  api: CommentsApi
+) {
+  const catchGenericAjaxError =
+    createGenericAjaxErrorCatcherForReLoadableData(store)
 
-export const commentsChangeComment = new Subject<string>()
-
-export const commentsPostComment = new Subject()
-
-export const commentsDeleteComment = new Subject<Comment>()
-
-const store = createMemoryStore<CommentsState>(initialState)
-
-const catchGenericAjaxError =
-  createGenericAjaxErrorCatcherForReLoadableData(store)
-
-export const comments$ = createRxState(
-  store,
-  merge(
-    merge(commentsLoad, commentsPostComment, commentsDeleteComment).pipe(
-      map(() => ({ ...store.state, loading: true }))
-    ),
-    commentsLoad.pipe(
-      switchMap((slug) =>
-        commentsApi.getArticleComments({ slug }).pipe(
-          map(({ comments }) => ({
-            ...store.state,
-            slug,
-            comments,
-            errors: {},
-            loading: false,
-          }))
-        )
+  return createRxState(
+    store,
+    merge(
+      merge(load$, postComment$, deleteComment$).pipe(
+        map(() => ({ ...store.state, loading: true }))
       ),
-      catchGenericAjaxError
-    ),
-    commentsChangeComment.pipe(map((comment) => ({ ...store.state, comment }))),
-    commentsPostComment.pipe(
-      map(() => store.state),
-      exhaustMap(({ slug, comment }) =>
-        commentsApi.createArticleComment({
-          slug,
-          comment: { comment: { body: comment } },
-        })
-      ),
-      map(({ comment }) => {
-        const state = store.state
-        return {
-          ...state,
-          comment: '',
-          comments: [comment, ...state.comments],
-          loading: false,
-          errors: {},
-        }
-      }),
-      catchGenericAjaxError
-    ),
-    commentsDeleteComment.pipe(
-      injectStore(store),
-      exhaustMap(([{ id }, { slug }]) =>
-        commentsApi.deleteArticleComment({ slug, id }).pipe(
-          map(() => {
-            const state = store.state
-            return {
-              ...state,
-              comments: state.comments.filter((c) => c.id !== id),
-              loading: false,
+      load$.pipe(
+        switchMap((slug) =>
+          api.getArticleComments({ slug }).pipe(
+            map(({ comments }) => ({
+              ...store.state,
+              slug,
+              comments,
               errors: {},
-            }
-          })
-        )
+              loading: false,
+            }))
+          )
+        ),
+        catchGenericAjaxError
       ),
-      catchGenericAjaxError
-    )
-  ),
-  takeUntil(commentsCleanup)
-)
+      changeComment$.pipe(map((comment) => ({ ...store.state, comment }))),
+      postComment$.pipe(
+        map(() => store.state),
+        exhaustMap(({ slug, comment }) =>
+          api.createArticleComment({
+            slug,
+            comment: { comment: { body: comment } },
+          })
+        ),
+        map(({ comment }) => {
+          const state = store.state
+          return {
+            ...state,
+            comment: '',
+            comments: [comment, ...state.comments],
+            loading: false,
+            errors: {},
+          }
+        }),
+        catchGenericAjaxError
+      ),
+      deleteComment$.pipe(
+        injectStore(store),
+        exhaustMap(([{ id }, { slug }]) =>
+          api.deleteArticleComment({ slug, id }).pipe(
+            map(() => {
+              const state = store.state
+              return {
+                ...state,
+                comments: state.comments.filter((c) => c.id !== id),
+                loading: false,
+                errors: {},
+              }
+            })
+          )
+        ),
+        catchGenericAjaxError
+      )
+    ),
+    takeUntil(stop$)
+  )
+}

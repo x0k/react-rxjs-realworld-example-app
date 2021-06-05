@@ -1,19 +1,20 @@
-import { merge, Subject } from 'rxjs'
+import { merge } from 'rxjs'
 import {
   exhaustMap,
   map,
   mapTo,
   tap,
-  withLatestFrom,
   takeUntil,
+  withLatestFrom,
 } from 'rxjs/operators'
+import { Update } from 'history'
 
-import { LoginUser } from 'lib/conduit-client'
+import { LoginUser, User, UserAndAuthenticationApi } from 'lib/conduit-client'
 import { createRxState } from 'lib/store-rx-state'
-import { userAndAuthenticationApi } from 'lib/api'
 import { ChangeFieldEventPayload } from 'lib/event'
 import { isLocationWithFromState } from 'lib/router'
-import { createMemoryStore } from 'lib/store'
+import { ObservableOf, SignalsOf } from 'lib/store-rx-store'
+import { Store } from 'lib/store'
 
 import { Path } from 'models/path'
 import {
@@ -21,55 +22,71 @@ import {
   ReLoadableData,
 } from 'models/re-loadable-data'
 
-import { userSet } from './user'
-import { navigation$, navigationNavigate } from './navigation'
+import { NavigateEventPayload } from './navigation'
 
 export type AuthState = LoginUser & ReLoadableData
 
-export const authChangeField = new Subject<ChangeFieldEventPayload<LoginUser>>()
-
-export const authSignIn = new Subject()
-
-export const authCleanup = new Subject()
-
-const initialState: AuthState = {
+export const initialAuthState: AuthState = {
   email: '',
   password: '',
   loading: false,
   errors: {},
 }
 
-const store = createMemoryStore(initialState)
+export type AuthEvents = {
+  changeField: ChangeFieldEventPayload<LoginUser>
+  signIn: unknown
+  stop: unknown
+}
 
-const catchGenericAjaxError =
-  createGenericAjaxErrorCatcherForReLoadableData(store)
+export type AuthSources = {
+  navigate: Update
+}
 
-export const auth$ = createRxState(
-  store,
-  merge(
-    authChangeField.pipe(
-      map(({ field, value }) => ({ ...store.state, [field]: value }))
-    ),
-    authSignIn.pipe(
-      map(() => ({
-        ...store.state,
-        loading: true,
-      }))
-    ),
-    authSignIn.pipe(
-      exhaustMap(() =>
-        userAndAuthenticationApi.login({ body: { user: store.state } })
+export type AuthSignals = SignalsOf<{
+  setUser: User
+  navigate: NavigateEventPayload
+}>
+
+export function createAuth(
+  store: Store<AuthState>,
+  {
+    changeField$,
+    signIn$,
+    stop$,
+    navigate$,
+  }: ObservableOf<AuthEvents & AuthSources>,
+  { navigate, setUser }: AuthSignals,
+  api: UserAndAuthenticationApi
+) {
+  const catchGenericAjaxError =
+    createGenericAjaxErrorCatcherForReLoadableData(store)
+
+  return createRxState(
+    store,
+    merge(
+      changeField$.pipe(
+        map(({ field, value }) => ({ ...store.state, [field]: value }))
       ),
-      tap(({ user }) => userSet.next(user)),
-      withLatestFrom(navigation$),
-      tap(([, { location }]) =>
-        navigationNavigate.next(
-          isLocationWithFromState(location) ? location.state.from : Path.Feed
-        )
+      signIn$.pipe(
+        map(() => ({
+          ...store.state,
+          loading: true,
+        }))
       ),
-      mapTo(initialState),
-      catchGenericAjaxError
-    )
-  ),
-  takeUntil(authCleanup)
-)
+      signIn$.pipe(
+        exhaustMap(() => api.login({ body: { user: store.state } })),
+        withLatestFrom(navigate$),
+        tap(([{ user }, { location }]) => {
+          setUser(user)
+          navigate(
+            isLocationWithFromState(location) ? location.state.from : Path.Feed
+          )
+        }),
+        mapTo(initialAuthState),
+        catchGenericAjaxError
+      )
+    ),
+    takeUntil(stop$)
+  )
+}

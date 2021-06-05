@@ -1,19 +1,15 @@
-import { Subject } from 'rxjs'
 import { distinctUntilChanged } from 'rxjs/operators'
 
 import { createRxState } from 'lib/store-rx-state'
-import { createLocalStorageStore } from 'lib/store'
-
-import { TOKEN_KEY } from 'models/app'
+import { Store } from 'lib/store'
+import { ObservableOf } from 'lib/store-rx-store'
 
 export type AccessToken = string | null
 
-export const tokenSet = new Subject<AccessToken>()
+export type TokenEvents = ObservableOf<{
+  set: AccessToken
+}>
 
-const store = createLocalStorageStore<AccessToken>(TOKEN_KEY, null)
-
-export const token$ = createRxState<AccessToken>(
-  store,
-  tokenSet,
-  distinctUntilChanged()
-)
+export function createToken(store: Store<AccessToken>, { set$ }: TokenEvents) {
+  return createRxState<AccessToken>(store, set$, distinctUntilChanged())
+}

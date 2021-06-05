@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import { Subject } from 'rxjs'
 
+import { HookAction } from './model'
 import {
   createSignalsHooks,
   createStartSignalHooks,
@@ -8,8 +8,8 @@ import {
 } from './rx-signals'
 
 export function useSignalsHooks<StartSignal, StopSignal>(
-  start: Subject<StartSignal>,
-  stop: Subject<StopSignal>,
+  start: HookAction<StartSignal>,
+  stop: HookAction<StopSignal>,
   startPayload?: StartSignal,
   stopPayload?: StopSignal
 ) {
@@ -26,14 +26,14 @@ export function useSignalsHooks<StartSignal, StopSignal>(
 }
 
 export function useStartSignalHooks<StartSignal>(
-  start: Subject<StartSignal>,
+  start: HookAction<StartSignal>,
   payload?: StartSignal
 ) {
   return useMemo(() => createStartSignalHooks(start, payload), [start, payload])
 }
 
 export function useStopSignalHooks<StopSignal>(
-  stop: Subject<StopSignal>,
+  stop: HookAction<StopSignal>,
   payload?: StopSignal
 ) {
   return useMemo(() => createStopSignalHooks(stop, payload), [stop, payload])

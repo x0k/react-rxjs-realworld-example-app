@@ -1,4 +1,4 @@
-import { EMPTY, merge, Observable, Subject } from 'rxjs'
+import { EMPTY, merge, Observable } from 'rxjs'
 import {
   exhaustMap,
   filter,
@@ -9,8 +9,8 @@ import {
   switchMap,
 } from 'rxjs/operators'
 
-import { articleApi } from 'lib/api'
 import {
+  ArticlesApi,
   NewArticle,
   SingleArticleResponse,
   UpdateArticle,
@@ -19,7 +19,8 @@ import { createRxState } from 'lib/store-rx-state'
 import { partiallyFoldState, State } from 'lib/state'
 import { ChangeFieldEventPayload } from 'lib/event'
 import { isTruly } from 'lib/types'
-import { createMemoryStore } from 'lib/store'
+import { Store } from 'lib/store'
+import { ObservableOf, SignalsOf } from 'lib/store-rx-store'
 
 import { getArticlePath } from 'models/path'
 import { ArticleTag, ArticleSlug } from 'models/article'
@@ -28,7 +29,7 @@ import {
   ReLoadableData,
 } from 'models/re-loadable-data'
 
-import { navigationNavigate } from './navigation'
+import { NavigateEventPayload } from './navigation'
 
 export enum EditorStatus {
   Create = 'create',
@@ -46,19 +47,7 @@ export type EditorChangeFieldEventPayload = ChangeFieldEventPayload<
   NewArticle & { tag: ArticleTag }
 >
 
-export const editorChangeField = new Subject<EditorChangeFieldEventPayload>()
-
-export const editorAddTag = new Subject()
-
-export const editorRemoveTag = new Subject<ArticleTag>()
-
-export const editorLoadArticle = new Subject<ArticleSlug | undefined>()
-
-export const editorCleanup = new Subject()
-
-export const editorPublishArticle = new Subject()
-
-const initialState: EditorState = {
+export const initialEditorState: EditorState = {
   type: EditorStatus.Create,
   body: '',
   description: '',
@@ -69,82 +58,106 @@ const initialState: EditorState = {
   errors: {},
 }
 
-const handleEditorPublish = partiallyFoldState<
-  EditorStatus,
-  EditorStatus.Create | EditorStatus.Update,
-  EditorState,
-  Observable<SingleArticleResponse>
->(
+export type EditorEvents = ObservableOf<{
+  changeField: EditorChangeFieldEventPayload
+  addTag: unknown
+  removeTag: ArticleTag
+  loadArticle: ArticleSlug | undefined
+  stop: unknown
+  publish: unknown
+}>
+
+export type EditorSignals = SignalsOf<{
+  navigate: NavigateEventPayload
+}>
+
+export function createEditor(
+  store: Store<EditorState>,
   {
-    [EditorStatus.Create]: (state) =>
-      articleApi.createArticle({ article: { article: state } }),
-    [EditorStatus.Update]: (state) =>
-      articleApi.updateArticle({
-        slug: state.slug,
-        article: { article: state },
-      }),
-  },
-  () => EMPTY
-)
+    addTag$,
+    changeField$,
+    loadArticle$,
+    publish$,
+    removeTag$,
+    stop$,
+  }: EditorEvents,
+  { navigate }: EditorSignals,
+  api: ArticlesApi
+) {
+  const catchGenericAjaxError =
+    createGenericAjaxErrorCatcherForReLoadableData(store)
 
-const store = createMemoryStore<EditorState>(initialState)
-
-const catchGenericAjaxError =
-  createGenericAjaxErrorCatcherForReLoadableData(store)
-
-export const editor$ = createRxState(
-  store,
-  merge<EditorState>(
-    editorChangeField.pipe(
-      map(({ field, value }) => ({ ...store.state, [field]: value }))
-    ),
-    editorAddTag.pipe(
-      map(() => {
-        const { tag, tagList = [] } = store.state
-        const tags = tagList.includes(tag)
-          ? tagList.filter((t) => t !== tag)
-          : tagList
-        return {
-          ...store.state,
+  const handleEditorPublish = partiallyFoldState<
+    EditorStatus,
+    EditorStatus.Create | EditorStatus.Update,
+    EditorState,
+    Observable<SingleArticleResponse>
+  >(
+    {
+      [EditorStatus.Create]: (state) =>
+        api.createArticle({ article: { article: state } }),
+      [EditorStatus.Update]: (state) =>
+        api.updateArticle({
+          slug: state.slug,
+          article: { article: state },
+        }),
+    },
+    () => EMPTY
+  )
+  return createRxState(
+    store,
+    merge<EditorState>(
+      changeField$.pipe(
+        map(({ field, value }) => ({ ...store.state, [field]: value }))
+      ),
+      addTag$.pipe(
+        map(() => {
+          const { tag, tagList = [] } = store.state
+          const tags = tagList.includes(tag)
+            ? tagList.filter((t) => t !== tag)
+            : tagList
+          return {
+            ...store.state,
+            tag: '',
+            tagList: tags.concat(tag),
+          }
+        })
+      ),
+      removeTag$.pipe(
+        map((tag) => {
+          const state = store.state
+          const { tagList } = state
+          return {
+            ...state,
+            tagList: tagList && tagList.filter((t) => t !== tag),
+          }
+        })
+      ),
+      loadArticle$.pipe(
+        filter(isTruly),
+        map(() => ({ ...store.state, loading: true }))
+      ),
+      loadArticle$.pipe(
+        filter(isTruly),
+        exhaustMap((slug) => api.getArticle({ slug })),
+        map<SingleArticleResponse, EditorState>(({ article }) => ({
+          ...article,
+          type: EditorStatus.Update,
+          loading: false,
+          errors: {},
           tag: '',
-          tagList: tags.concat(tag),
-        }
-      })
+        })),
+        catchGenericAjaxError
+      ),
+      publish$.pipe(map(() => ({ ...store.state, loading: true }))),
+      publish$.pipe(
+        map(() => store.state),
+        switchMap(handleEditorPublish),
+        tap(({ article: { slug } }) => navigate(getArticlePath(slug))),
+        switchMapTo(EMPTY),
+        catchGenericAjaxError
+      )
     ),
-    editorRemoveTag.pipe(
-      map((tag) => {
-        const state = store.state
-        const { tagList } = state
-        return {
-          ...state,
-          tagList: tagList && tagList.filter((t) => t !== tag),
-        }
-      })
-    ),
-    editorLoadArticle.pipe(
-      filter(isTruly),
-      map(() => ({ ...store.state, loading: true }))
-    ),
-    editorLoadArticle.pipe(
-      filter(isTruly),
-      exhaustMap((slug) => articleApi.getArticle({ slug })),
-      map<SingleArticleResponse, EditorState>(({ article }) => ({
-        ...article,
-        type: EditorStatus.Update,
-        loading: false,
-        errors: {},
-        tag: '',
-      })),
-      catchGenericAjaxError
-    ),
-    editorPublishArticle.pipe(map(() => ({ ...store.state, loading: true }))),
-    editorPublishArticle.pipe(
-      map(() => store.state),
-      switchMap(handleEditorPublish),
-      tap(({ article: { slug } }) => navigationNavigate.next(getArticlePath(slug))),
-      switchMapTo(EMPTY),
-      catchGenericAjaxError
-    )
-  ),
-  takeUntil(editorCleanup.pipe(tap(() => store.set(initialState))))
-)
+    takeUntil(stop$.pipe(tap(() => store.set(initialEditorState))))
+  )
+}
