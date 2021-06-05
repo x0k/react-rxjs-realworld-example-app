@@ -12,8 +12,7 @@ import { Update } from 'history'
 import { LoginUser, User, UserAndAuthenticationApi } from 'lib/conduit-client'
 import { ChangeFieldEventPayload } from 'lib/event'
 import { isLocationWithFromState } from 'lib/router'
-import { Store } from 'lib/store'
-import { SignalsOf, ObservableOf, createRxState } from 'lib/rx-store'
+import { SignalsOf, createRxStateFactory } from 'lib/rx-store'
 
 import { Path } from 'models/path'
 import {
@@ -47,45 +46,46 @@ export type AuthSignals = SignalsOf<{
   navigate: NavigateEventPayload
 }>
 
-export function createAuth(
-  store: Store<AuthState>,
-  {
-    changeField$,
-    signIn$,
-    stop$,
-    navigate$,
-  }: ObservableOf<AuthEvents & AuthSources>,
-  { navigate, setUser }: AuthSignals,
-  api: UserAndAuthenticationApi
-) {
-  const catchGenericAjaxError =
-    createGenericAjaxErrorCatcherForReLoadableData(store)
-
-  return createRxState(
+export const createAuth = createRxStateFactory<
+  AuthState,
+  AuthEvents & AuthSources,
+  [AuthSignals, UserAndAuthenticationApi]
+>(
+  (
     store,
-    merge(
-      changeField$.pipe(
-        map(({ field, value }) => ({ ...store.state, [field]: value }))
+    { changeField$, signIn$, stop$, navigate$ },
+    { navigate, setUser },
+    api
+  ) => {
+    const catchGenericAjaxError =
+      createGenericAjaxErrorCatcherForReLoadableData(store)
+    return [
+      merge(
+        changeField$.pipe(
+          map(({ field, value }) => ({ ...store.state, [field]: value }))
+        ),
+        signIn$.pipe(
+          map(() => ({
+            ...store.state,
+            loading: true,
+          }))
+        ),
+        signIn$.pipe(
+          exhaustMap(() => api.login({ body: { user: store.state } })),
+          withLatestFrom(navigate$),
+          tap(([{ user }, { location }]) => {
+            setUser(user)
+            navigate(
+              isLocationWithFromState(location)
+                ? location.state.from
+                : Path.Feed
+            )
+          }),
+          mapTo(initialAuthState),
+          catchGenericAjaxError
+        )
       ),
-      signIn$.pipe(
-        map(() => ({
-          ...store.state,
-          loading: true,
-        }))
-      ),
-      signIn$.pipe(
-        exhaustMap(() => api.login({ body: { user: store.state } })),
-        withLatestFrom(navigate$),
-        tap(([{ user }, { location }]) => {
-          setUser(user)
-          navigate(
-            isLocationWithFromState(location) ? location.state.from : Path.Feed
-          )
-        }),
-        mapTo(initialAuthState),
-        catchGenericAjaxError
-      )
-    ),
-    takeUntil(stop$)
-  )
-}
+      takeUntil(stop$),
+    ]
+  }
+)

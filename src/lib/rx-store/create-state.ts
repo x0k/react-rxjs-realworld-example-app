@@ -9,20 +9,36 @@ import { multicast, refCount, tap } from 'rxjs/operators'
 
 import { Store as StoreState } from 'lib/store'
 
-export function createRxState<State>(
-  state: StoreState<State>,
-  reducer$: Observable<State>,
-  enhancer: MonoTypeOperatorFunction<State> = identity
+import { ObservableOf } from './create'
+
+export function createRxStateFactory<
+  State,
+  Events,
+  Args extends ReadonlyArray<any> = []
+>(
+  createState: (
+    store: StoreState<State>,
+    events: ObservableOf<Events>,
+    ...rest: Args
+  ) =>
+    | [Observable<State>]
+    | [Observable<State>, MonoTypeOperatorFunction<State>]
 ) {
-  // Common "of" with lazy getState
-  const initial$ = new Observable<State>((observer) => {
-    observer.next(state.state)
-    observer.complete()
-  })
-  const handlers$ = reducer$.pipe(tap(state.set))
-  const state$ = merge(initial$, handlers$)
-  return enhancer(state$).pipe(
-    multicast(() => new ReplaySubject<State>(1)),
-    refCount()
-  )
+  return (
+    store: StoreState<State>,
+    events: ObservableOf<Events>,
+    ...rest: Args
+  ) => {
+    const [reducer$, enhancer = identity] = createState(store, events, ...rest)
+    const initial$ = new Observable<State>((observer) => {
+      observer.next(store.state)
+      observer.complete()
+    })
+    const handlers$ = reducer$.pipe(tap(store.set))
+    const state$ = merge(initial$, handlers$)
+    return enhancer(state$).pipe(
+      multicast(() => new ReplaySubject<State>(1)),
+      refCount()
+    )
+  }
 }

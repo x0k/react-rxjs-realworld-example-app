@@ -1,4 +1,4 @@
-import { combineLatest, merge } from 'rxjs'
+import { combineLatest, merge, Observable } from 'rxjs'
 import {
   exhaustMap,
   filter,
@@ -18,8 +18,7 @@ import {
   SingleArticleResponse,
 } from 'lib/conduit-client'
 import { isSpecificState } from 'lib/state'
-import { Store } from 'lib/store'
-import { ObservableOf, createRxState } from 'lib/rx-store'
+import { createRxStateFactory } from 'lib/rx-store'
 
 import {
   catchGenericAjaxErrorForLoadableData,
@@ -44,29 +43,26 @@ export const initialArticleState: ArticleStates = {
   type: LoadableDataStatus.Init,
 }
 
-export type ArticleEvents = ObservableOf<{
+export type ArticleEvents = {
   load: ArticleSlug
   stop: unknown
   delete: unknown
   toggleFollow: unknown
   toggleFavorite: unknown
-}>
+}
 
-export function createArticle(
-  store: Store<ArticleStates>,
-  {
-    delete$,
-    load$,
-    stop$,
-    toggleFavorite$,
-    toggleFollow$,
-  }: ArticleEvents,
-  api: ArticlesApi,
-  profileApi: ProfileApi,
-  favoriteApi: FavoritesApi
-) {
-  return createRxState<ArticleStates>(
+export const createArticle = createRxStateFactory<
+  ArticleStates,
+  ArticleEvents,
+  [ArticlesApi, ProfileApi, FavoritesApi]
+>(
+  (
     store,
+    { delete$, load$, stop$, toggleFavorite$, toggleFollow$ },
+    api,
+    profileApi,
+    favoriteApi
+  ) => [
     merge(
       load$.pipe(mapTo({ type: LoadableDataStatus.Loading })),
       load$.pipe(
@@ -113,17 +109,15 @@ export function createArticle(
         catchGenericAjaxErrorForLoadableData
       )
     ),
-    takeUntil(stop$.pipe(tap(() => store.set(initialArticleState))))
-  )
-}
+    takeUntil(stop$.pipe(tap(() => store.set(initialArticleState)))),
+  ]
+)
 
-export type IsAuthorEvents = ObservableOf<{
-  article: ArticleStates
-  user: UserStates
-}>
-
-export function createIsAuthor({ article$, user$ }: IsAuthorEvents) {
-  return combineLatest([article$, user$]).pipe(
+export const createIsAuthor = (
+  article$: Observable<ArticleStates>,
+  user$: Observable<UserStates>
+) =>
+  combineLatest([article$, user$]).pipe(
     map(
       ([article, user]) =>
         article.type === LoadableDataStatus.IDLE &&
@@ -131,4 +125,3 @@ export function createIsAuthor({ article$, user$ }: IsAuthorEvents) {
         article.data.author.username === user.user.username
     )
   )
-}

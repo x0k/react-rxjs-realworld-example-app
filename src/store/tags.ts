@@ -1,11 +1,9 @@
 import { merge } from 'rxjs'
 import { filter, map, mapTo, switchMap, takeUntil } from 'rxjs/operators'
 
-import { TagsResponse } from 'lib/conduit-client'
-import { defaultApi } from 'lib/api'
+import { DefaultApi, TagsResponse } from 'lib/conduit-client'
 import { isSpecificState } from 'lib/state'
-import { Store } from 'lib/store'
-import { ObservableOf, createRxState } from 'lib/rx-store'
+import { createRxStateFactory } from 'lib/rx-store'
 
 import { GenericAjaxError } from 'models/errors'
 import {
@@ -20,17 +18,13 @@ export type TagList = Tag[]
 
 export type TagsStates = LoadableDataStates<TagList, GenericAjaxError>
 
-export type TagsEvents = ObservableOf<{
+export type TagsEvents = {
   load: unknown
   stop: unknown
-}>
+}
 
-export function createTags(
-  store: Store<TagsStates>,
-  { load$, stop$ }: TagsEvents
-) {
-  return createRxState<TagsStates>(
-    store,
+export const createTags = createRxStateFactory<TagsStates, TagsEvents, [DefaultApi]>(
+  (store, { load$, stop$ }, api) => [
     merge(
       load$.pipe(
         map(() => store.state),
@@ -38,7 +32,7 @@ export function createTags(
         mapTo({ type: LoadableDataStatus.Loading })
       ),
       load$.pipe(
-        switchMap(() => defaultApi.tagsGet()),
+        switchMap(() => api.tagsGet()),
         map<TagsResponse, TagsStates>(({ tags }) => ({
           type: LoadableDataStatus.IDLE,
           data: tags,
@@ -46,6 +40,6 @@ export function createTags(
         catchGenericAjaxErrorForLoadableData
       )
     ),
-    takeUntil(stop$)
-  )
-}
+    takeUntil(stop$),
+  ]
+)

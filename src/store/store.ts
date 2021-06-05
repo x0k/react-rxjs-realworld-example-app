@@ -7,6 +7,7 @@ import { history } from 'lib/history'
 import {
   articleApi,
   commentsApi,
+  defaultApi,
   favoriteApi,
   profileApi,
   userAndAuthenticationApi,
@@ -112,14 +113,12 @@ export const user = createRxStore<
   userAndAuthenticationApi
 )
 
-export const isNotUnauthorized$ = createIsNotUnauthorized({
-  user$: user.state$,
-})
+export const isNotUnauthorized$ = createIsNotUnauthorized(user.state$)
 
 export const tags = createRxStore(
   createTags,
   createMemoryStore<TagsStates>({ type: LoadableDataStatus.Init })
-)(['load', 'stop'])
+)(['load', 'stop'], defaultApi)
 
 export const feedType = createRxStore(
   createFeedType,
@@ -186,10 +185,7 @@ export const profile = createRxStore<
   { user$: user.state$ }
 )(['load', 'stop', 'toggleFollowing'], profileApi)
 
-export const isCurrentUser$ = createIsCurrentUser({
-  profile$: profile.state$,
-  user$: user.state$,
-})
+export const isCurrentUser$ = createIsCurrentUser(profile.state$, user.state$)
 
 export const settings = createRxStore<
   SettingsState,
@@ -223,10 +219,7 @@ export const article = createRxStore(
   favoriteApi
 )
 
-export const isAuthor$ = createIsAuthor({
-  article$: article.state$,
-  user$: user.state$,
-})
+export const isAuthor$ = createIsAuthor(article.state$, user.state$)
 
 export const comments = createRxStore(
   createComments,
