@@ -2,7 +2,12 @@ import { merge } from 'rxjs'
 import { exhaustMap, map, switchMap, takeUntil } from 'rxjs/operators'
 
 import { Comment, CommentsApi } from 'lib/conduit-client'
-import { injectStore, createRxStateFactory } from 'lib/rx-store'
+import {
+  injectStore,
+  createRxStateFactory,
+  StateOptions,
+  StateHandlers,
+} from 'lib/rx-store'
 
 import { ArticleSlug } from 'models/article'
 import {
@@ -32,16 +37,14 @@ export type CommentsEvents = {
   deleteComment: Comment
 }
 
-export const createComments = createRxStateFactory<
-  CommentsState,
-  CommentsEvents,
-  [CommentsApi]
->(
+export const createComments = createRxStateFactory(
   (
-    store,
-    { changeComment$, deleteComment$, load$, postComment$, stop$ },
-    api
-  ) => {
+    {
+      store,
+      events: { changeComment$, deleteComment$, load$, postComment$, stop$ },
+    }: StateOptions<CommentsState, CommentsEvents>,
+    api: CommentsApi
+  ): StateHandlers<CommentsState> => {
     const catchGenericAjaxError =
       createGenericAjaxErrorCatcherForReLoadableData(store)
     return [

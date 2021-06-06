@@ -1,6 +1,6 @@
 import { distinctUntilChanged } from 'rxjs/operators'
 
-import { createRxStateFactory } from 'lib/rx-store'
+import { createRxStateFactory, StateOptions } from 'lib/rx-store'
 
 export type AccessToken = string | null
 
@@ -8,6 +8,9 @@ export type TokenEvents = {
   set: AccessToken
 }
 
-export const createToken = createRxStateFactory<AccessToken, TokenEvents>(
-  (store, { set$ }) => [set$, distinctUntilChanged()]
+export const createToken = createRxStateFactory(
+  ({ events: { set$ } }: StateOptions<AccessToken, TokenEvents>) => [
+    set$,
+    distinctUntilChanged<AccessToken>(),
+  ]
 )

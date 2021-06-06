@@ -1,35 +1,22 @@
-import {
-  identity,
-  merge,
-  MonoTypeOperatorFunction,
-  Observable,
-  ReplaySubject,
-} from 'rxjs'
+import { identity, merge, Observable, ReplaySubject } from 'rxjs'
 import { multicast, refCount, tap } from 'rxjs/operators'
 
-import { Store as StoreState } from 'lib/store'
-
-import { ObservableOf } from './create'
+import { StateHandlers, StateOptions } from './model'
 
 export function createRxStateFactory<
   State,
   Events,
-  Args extends ReadonlyArray<any> = []
+  Options extends StateOptions<State, Events>,
+  Dependencies extends ReadonlyArray<any> = []
 >(
-  createState: (
-    store: StoreState<State>,
-    events: ObservableOf<Events>,
-    ...rest: Args
-  ) =>
-    | [Observable<State>]
-    | [Observable<State>, MonoTypeOperatorFunction<State>]
-) {
-  return (
-    store: StoreState<State>,
-    events: ObservableOf<Events>,
-    ...rest: Args
-  ) => {
-    const [reducer$, enhancer = identity] = createState(store, events, ...rest)
+  createHandlers: (
+    options: Options,
+    ...rest: Dependencies
+  ) => StateHandlers<State>
+): (options: Options, ...rest: Dependencies) => Observable<State> {
+  return (options, ...rest) => {
+    const [reducer$, enhancer = identity] = createHandlers(options, ...rest)
+    const { store } = options
     const initial$ = new Observable<State>((observer) => {
       observer.next(store.state)
       observer.complete()
