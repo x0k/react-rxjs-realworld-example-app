@@ -4,9 +4,8 @@ import { filter, map, mapTo, switchMap, takeUntil } from 'rxjs/operators'
 import { DefaultApi, TagsResponse } from 'lib/conduit-client'
 import { isSpecificState } from 'lib/state'
 import { createRxStateFactory, StateHandlers, StateOptions } from 'lib/rx-store'
-
-import { GenericAjaxError } from 'lib/models'
 import {
+  GenericAjaxError,
   catchGenericAjaxErrorForLoadableData,
   LoadableDataStates,
   LoadableDataStatus,

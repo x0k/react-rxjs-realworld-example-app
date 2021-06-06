@@ -2,9 +2,7 @@ import { distinctUntilChanged } from 'rxjs/operators'
 
 import { SelectState, State } from 'lib/state'
 import { createRxStateFactory, StateOptions } from 'lib/rx-store'
-
-import { ProfileUsername } from 'lib/models'
-import { FeedType } from 'lib/models'
+import { ProfileUsername, FeedType } from 'lib/models'
 
 import { Tag } from './tags'
 

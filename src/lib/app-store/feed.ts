@@ -21,12 +21,11 @@ import {
   StateSignals,
   StateHandlers,
 } from 'lib/rx-store'
-
 import {
   createGenericAjaxErrorCatcherForReLoadableData,
   ReLoadableData,
+  FeedType,
 } from 'lib/models'
-import { FeedType } from 'lib/models'
 
 import { FeedTypeStates, initialFeedTypeState } from './feed-type'
 

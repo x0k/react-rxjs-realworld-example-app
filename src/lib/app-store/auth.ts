@@ -18,9 +18,8 @@ import {
   StateSignals,
   StateHandlers,
 } from 'lib/rx-store'
-
-import { Path } from 'lib/models'
 import {
+  Path,
   createGenericAjaxErrorCatcherForReLoadableData,
   ReLoadableData,
 } from 'lib/models'

@@ -8,9 +8,8 @@ import {
   StateOptions,
   StateHandlers,
 } from 'lib/rx-store'
-
-import { ArticleSlug } from 'lib/models'
 import {
+  ArticleSlug,
   createGenericAjaxErrorCatcherForReLoadableData,
   ReLoadableData,
 } from 'lib/models'

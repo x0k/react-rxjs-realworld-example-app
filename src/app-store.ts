@@ -3,8 +3,7 @@ import { Update } from 'history'
 
 import { createLocalStorageStore, createMemoryStore } from 'lib/store'
 import { createRxStore, createSubjects } from 'lib/rx-store'
-import { TOKEN_KEY } from 'lib/models'
-import { LoadableDataStatus } from 'lib/models'
+import { TOKEN_KEY, LoadableDataStatus } from 'lib/models'
 import {
   createToken,
   AccessToken,

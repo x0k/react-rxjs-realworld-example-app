@@ -24,10 +24,10 @@ import {
   StateSignals,
   StateHandlers,
 } from 'lib/rx-store'
-
-import { getArticlePath } from 'lib/models'
-import { ArticleTag, ArticleSlug } from 'lib/models'
 import {
+  getArticlePath,
+  ArticleTag,
+  ArticleSlug,
   createGenericAjaxErrorCatcherForReLoadableData,
   ReLoadableData,
 } from 'lib/models'
