@@ -3,7 +3,55 @@ import { Update } from 'history'
 
 import { createLocalStorageStore, createMemoryStore } from 'lib/store'
 import { createRxStore, createSubjects } from 'lib/rx-store'
-import { history } from 'lib/history'
+import { TOKEN_KEY, LoadableDataStatus } from 'lib/models'
+import {
+  createToken,
+  AccessToken,
+  TokenEvents,
+  createNavigation,
+  NavigationEvents,
+  createUser,
+  UserStates,
+  initialUserState,
+  UserEvents,
+  createIsNotUnauthorized,
+  createTags,
+  TagsStates,
+  TagsEvents,
+  createFeedType,
+  initialFeedTypeState,
+  FeedTypeEvents,
+  createFeedPage,
+  FeedPageEvents,
+  createFeed,
+  initialFeedState,
+  FeedEvents,
+  createAuth,
+  initialAuthState,
+  AuthEvents,
+  createRegistration,
+  initialRegistrationState,
+  RegistrationEvents,
+  createProfile,
+  ProfileStates,
+  ProfileEvents,
+  createIsCurrentUser,
+  createSettings,
+  initialSettingsState,
+  SettingsEvents,
+  createEditor,
+  initialEditorState,
+  EditorEvents,
+  createArticle,
+  initialArticleState,
+  ArticleEvents,
+  createIsAuthor,
+  createComments,
+  initialCommentsState,
+  CommentsEvents,
+} from 'lib/app-store'
+
+import { history } from './browser-history'
 import {
   articleApi,
   commentsApi,
@@ -11,57 +59,7 @@ import {
   favoriteApi,
   profileApi,
   userAndAuthenticationApi,
-} from 'lib/api'
-
-import { TOKEN_KEY } from 'models/app'
-import { LoadableDataStatus } from 'models/loadable-data'
-
-import { createNavigation, NavigationEvents } from './navigation'
-import { AccessToken, createToken, TokenEvents } from './token'
-import {
-  createIsNotUnauthorized,
-  createUser,
-  initialUserState,
-  UserEvents,
-  UserStates,
-} from './user'
-import { createTags, TagsEvents, TagsStates } from './tags'
-import { createFeed, FeedEvents, initialFeedState } from './feed'
-import {
-  createFeedType,
-  FeedTypeEvents,
-  initialFeedTypeState,
-} from './feed-type'
-import { createFeedPage, FeedPageEvents } from './feed-page'
-import { AuthEvents, createAuth, initialAuthState } from './auth'
-import {
-  createRegistration,
-  initialRegistrationState,
-  RegistrationEvents,
-} from './registration'
-import {
-  createIsCurrentUser,
-  createProfile,
-  ProfileEvents,
-  ProfileStates,
-} from './profile'
-import {
-  createSettings,
-  initialSettingsState,
-  SettingsEvents,
-} from './settings'
-import { createEditor, EditorEvents, initialEditorState } from './editor'
-import {
-  ArticleEvents,
-  createArticle,
-  createIsAuthor,
-  initialArticleState,
-} from './article'
-import {
-  CommentsEvents,
-  createComments,
-  initialCommentsState,
-} from './comments'
+} from './api'
 
 export const token = createRxStore(createToken, {
   store: createLocalStorageStore<AccessToken>(TOKEN_KEY, null),

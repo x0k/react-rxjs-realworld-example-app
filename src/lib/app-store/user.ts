@@ -15,9 +15,7 @@ import {
   injectStore,
   createRxStateFactory,
 } from 'lib/rx-store'
-
-import { GenericAjaxError } from 'models/errors'
-import { Path } from 'models/path'
+import { GenericAjaxError, Path } from 'lib/models'
 
 import { AccessToken } from './token'
 import { NavigateEventPayload } from './navigation'

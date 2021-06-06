@@ -3,12 +3,11 @@ import { Link } from 'react-router-dom'
 
 import { Article } from 'lib/conduit-client'
 import { useRxState } from 'lib/rx-store-react'
-
-import { Path } from 'models/path'
+import { Path } from 'lib/models'
 
 import { Button, ButtonSize, ButtonVariant } from 'components/button'
 
-import { article, isAuthor$ } from 'store'
+import { article, isAuthor$ } from 'app-store'
 
 export interface ArticleActionsContainerProps {
   article: Article

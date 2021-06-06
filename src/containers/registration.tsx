@@ -9,7 +9,7 @@ import { Form } from 'components/form'
 import { InputField } from 'components/input-field'
 import { ErrorsList } from 'components/errors-list'
 
-import { registration } from 'store'
+import { registration } from 'app-store'
 
 const [onUsernameChange, onEmailChange, onPasswordChange] =
   createFieldChangeHandlers(

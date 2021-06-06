@@ -3,15 +3,13 @@ import React from 'react'
 import { foldState } from 'lib/state'
 import { createSignalsHooks } from 'lib/rx-store'
 import { useRxState } from 'lib/rx-store-react'
-
-import { LoadableDataStatus } from 'models/loadable-data'
-import { getFeedByTagPath } from 'models/path'
+import { LoadableDataStatus, getFeedByTagPath } from 'lib/models'
+import { TagsStates } from 'lib/app-store'
 
 import { TagsList } from 'components/tags-list'
 import { Tag } from 'components/tag'
 
-import { tags } from 'store'
-import { TagsStates } from 'store/tags'
+import { tags } from 'app-store'
 
 const foldTagsState = foldState<
   LoadableDataStatus,

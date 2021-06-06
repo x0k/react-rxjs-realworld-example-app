@@ -8,12 +8,11 @@ import {
   StateOptions,
   StateHandlers,
 } from 'lib/rx-store'
-
-import { ArticleSlug } from 'models/article'
 import {
+  ArticleSlug,
   createGenericAjaxErrorCatcherForReLoadableData,
   ReLoadableData,
-} from 'models/re-loadable-data'
+} from 'lib/models'
 
 export type CommentsState = ReLoadableData & {
   comment: string

@@ -5,8 +5,8 @@ import { Article } from 'lib/conduit-client'
 import { matcher } from 'lib/state'
 import { createFormSubmitHandler } from 'lib/event'
 import { useRxState, useSignalsHooks } from 'lib/rx-store-react'
-
-import { Path } from 'models/path'
+import { Path } from 'lib/models'
+import { UserStates, UserStatus } from 'lib/app-store'
 
 import { ErrorsList } from 'components/errors-list'
 import { List } from 'components/list'
@@ -14,8 +14,7 @@ import { Button, ButtonVariant } from 'components/button'
 import { Form } from 'components/form'
 import { Textarea } from 'components/textarea'
 
-import { comments, user } from 'store'
-import { UserStates, UserStatus } from 'store/user'
+import { comments, user } from 'app-store'
 
 export interface CommentsContainerProps {
   article: Article

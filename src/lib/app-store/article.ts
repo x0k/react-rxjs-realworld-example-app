@@ -19,14 +19,13 @@ import {
 } from 'lib/conduit-client'
 import { isSpecificState } from 'lib/state'
 import { createRxStateFactory, StateHandlers, StateOptions } from 'lib/rx-store'
-
 import {
   catchGenericAjaxErrorForLoadableData,
   LoadableDataStates,
   LoadableDataStatus,
-} from 'models/loadable-data'
-import { GenericAjaxError } from 'models/errors'
-import { ArticleSlug } from 'models/article'
+  GenericAjaxError,
+  ArticleSlug,
+} from 'lib/models'
 
 import { UserStates, UserStatus } from './user'
 

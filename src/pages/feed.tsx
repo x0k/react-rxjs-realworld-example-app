@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
-import { FeedByType } from 'models/feed'
+import { FeedByType } from 'lib/models'
 
 import { Page } from 'components/page'
 import { Row } from 'components/row'

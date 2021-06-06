@@ -11,11 +11,10 @@ import {
   StateSignals,
   StateHandlers,
 } from 'lib/rx-store'
-
 import {
   createGenericAjaxErrorCatcherForReLoadableData,
   ReLoadableData,
-} from 'models/re-loadable-data'
+} from 'lib/models'
 
 import { UserStatus, UserStates } from './user'
 

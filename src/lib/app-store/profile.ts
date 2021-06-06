@@ -17,14 +17,13 @@ import {
   StateHandlers,
   StateOptions,
 } from 'lib/rx-store'
-
 import {
   catchGenericAjaxErrorForLoadableData,
   LoadableDataStates,
   LoadableDataStatus,
-} from 'models/loadable-data'
-import { GenericAjaxError } from 'models/errors'
-import { ProfileUsername } from 'models/profile'
+  GenericAjaxError,
+  ProfileUsername,
+} from 'lib/models'
 
 import { UserStates, UserStatus } from './user'
 

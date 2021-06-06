@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-import { Path } from 'models/path'
+import { Path } from 'lib/models'
 
 import { Row } from 'components/row'
 import { Page } from 'components/page'

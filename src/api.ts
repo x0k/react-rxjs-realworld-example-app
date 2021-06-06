@@ -8,8 +8,7 @@ import {
   UserAndAuthenticationApi,
 } from 'lib/conduit-client'
 import { omitNullProps } from 'lib/types'
-
-import { TOKEN_KEY } from 'models/app'
+import { TOKEN_KEY } from 'lib/models'
 
 const configuration = new Configuration({
   basePath: process.env.REACT_APP_BACKEND,

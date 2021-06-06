@@ -1,7 +1,6 @@
 import React, { Suspense } from 'react'
 
-import { Path } from 'models/path'
-import { APP_NAME } from 'models/app'
+import { Path, APP_NAME } from 'lib/models'
 
 import { Header } from 'components/header'
 import { Logo } from 'components/logo'

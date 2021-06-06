@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Button, ButtonVariant } from 'components/button'
 
-import { user } from 'store'
+import { user } from 'app-store'
 
 export function LogoutContainer() {
   return (

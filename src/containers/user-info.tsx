@@ -3,16 +3,14 @@ import { Link } from 'react-router-dom'
 
 import { foldState } from 'lib/state'
 import { useRxState, useSignalsHooks } from 'lib/rx-store-react'
-
-import { LoadableDataStatus } from 'models/loadable-data'
-import { ProfileUsername } from 'models/profile'
+import { LoadableDataStatus, ProfileUsername } from 'lib/models'
+import { ProfileStates } from 'lib/app-store'
 
 import { Container } from 'components/container'
 import { Row } from 'components/row'
 import { Button, ButtonVariant } from 'components/button'
 
-import { isCurrentUser$, profile } from 'store'
-import { ProfileStates } from 'store/profile'
+import { isCurrentUser$, profile } from 'app-store'
 
 export interface UserInfoContainerProps {
   username: ProfileUsername
@@ -35,7 +33,6 @@ export function UserInfoContainer({ username }: UserInfoContainerProps) {
               <img alt={username} className="user-img" src={image} />
               <h4>{username}</h4>
               {bio && <p>{bio}</p>}
-
               {isCurrentUser ? (
                 <Link to="/settings">
                   <Button

@@ -2,7 +2,7 @@ import React, { ElementType } from 'react'
 import { Link } from 'react-router-dom'
 import clsx from 'clsx'
 
-import { AsProp, ClassNameProp } from 'models/props'
+import { AsProp, ClassNameProp } from 'lib/props'
 
 export type TagProps<E extends ElementType> = AsProp<E> &
   ClassNameProp & {

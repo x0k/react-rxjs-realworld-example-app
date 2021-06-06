@@ -1,17 +1,19 @@
 import React, { useCallback, useMemo } from 'react'
 
 import { useRxState, useStartSignalHooks } from 'lib/rx-store-react'
-
-import { ProfileUsername } from 'models/profile'
-import { FeedType, ProfileFeedByType } from 'models/feed'
-import { getProfileFeedByTypePath } from 'models/path'
+import {
+  ProfileUsername,
+  FeedType,
+  ProfileFeedByType,
+  getProfileFeedByTypePath,
+} from 'lib/models'
+import { FeedTypeStates } from 'lib/app-store'
 
 import { Tabs } from 'components/tabs'
 import { NavItem } from 'components/nav-item'
 import { NavLink } from 'components/nav-link'
 
-import { feedType } from 'store'
-import { FeedTypeStates } from 'store/feed-type'
+import { feedType } from 'app-store'
 
 export interface ProfileTabsContainerProps {
   username: ProfileUsername

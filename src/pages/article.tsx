@@ -3,8 +3,7 @@ import Markdown from 'markdown-to-jsx'
 import { useParams } from 'react-router-dom'
 
 import { Article } from 'lib/conduit-client'
-
-import { getFeedByTagPath } from 'models/path'
+import { getFeedByTagPath } from 'lib/models'
 
 import { ArticleMeta } from 'components/article-meta'
 import { Banner } from 'components/banner'

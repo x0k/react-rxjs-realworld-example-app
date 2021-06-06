@@ -1,7 +1,7 @@
 import React from 'react'
 import clsx from 'clsx'
 
-import { ChildrenProp, ClassNameProp } from 'models/props'
+import { ChildrenProp, ClassNameProp } from 'lib/props'
 
 export type RowProps = ClassNameProp & ChildrenProp
 

@@ -9,7 +9,7 @@ import { InputField } from 'components/input-field'
 import { Button, ButtonSize, ButtonVariant } from 'components/button'
 import { ErrorsList } from 'components/errors-list'
 
-import { auth } from 'store'
+import { auth } from 'app-store'
 
 const [onEmailChange, onPasswordChange] = createFieldChangeHandlers(
   auth.changeField,
