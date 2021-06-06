@@ -22,9 +22,9 @@ import {
   catchGenericAjaxErrorForLoadableData,
   LoadableDataStates,
   LoadableDataStatus,
-} from 'models/loadable-data'
-import { GenericAjaxError } from 'models/errors'
-import { ProfileUsername } from 'models/profile'
+} from 'lib/models'
+import { GenericAjaxError } from 'lib/models'
+import { ProfileUsername } from 'lib/models'
 
 import { UserStates, UserStatus } from './user'
 

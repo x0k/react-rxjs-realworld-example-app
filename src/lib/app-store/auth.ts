@@ -19,11 +19,11 @@ import {
   StateHandlers,
 } from 'lib/rx-store'
 
-import { Path } from 'models/path'
+import { Path } from 'lib/models'
 import {
   createGenericAjaxErrorCatcherForReLoadableData,
   ReLoadableData,
-} from 'models/re-loadable-data'
+} from 'lib/models'
 
 import { NavigateEventPayload } from './navigation'
 

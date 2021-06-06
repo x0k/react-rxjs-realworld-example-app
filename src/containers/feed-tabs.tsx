@@ -1,16 +1,14 @@
 import React, { useMemo } from 'react'
 
 import { useRxState, useStartSignalHooks } from 'lib/rx-store-react'
-
-import { getFeedByTypePath, Path } from 'models/path'
-import { FeedType } from 'models/feed'
+import { getFeedByTypePath, Path, FeedType } from 'lib/models'
+import { FeedTypeStates } from 'lib/app-store'
 
 import { NavItem } from 'components/nav-item'
 import { NavLink } from 'components/nav-link'
 import { Tabs } from 'components/tabs'
 
-import { feedType, isNotUnauthorized$ } from 'store'
-import { FeedTypeStates } from 'store/feed-type'
+import { feedType, isNotUnauthorized$ } from 'app-store'
 
 const onSetYourFeed = () =>
   feedType.set({

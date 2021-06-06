@@ -1,7 +1,7 @@
 import React, { FunctionComponent } from 'react'
 import clsx from 'clsx'
 
-import { ClassNameProp } from 'models/props'
+import { ClassNameProp } from 'lib/props'
 
 export const Tabs: FunctionComponent<ClassNameProp> = ({
   children,

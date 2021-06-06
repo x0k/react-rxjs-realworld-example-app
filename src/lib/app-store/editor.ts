@@ -25,12 +25,12 @@ import {
   StateHandlers,
 } from 'lib/rx-store'
 
-import { getArticlePath } from 'models/path'
-import { ArticleTag, ArticleSlug } from 'models/article'
+import { getArticlePath } from 'lib/models'
+import { ArticleTag, ArticleSlug } from 'lib/models'
 import {
   createGenericAjaxErrorCatcherForReLoadableData,
   ReLoadableData,
-} from 'models/re-loadable-data'
+} from 'lib/models'
 
 import { NavigateEventPayload } from './navigation'
 

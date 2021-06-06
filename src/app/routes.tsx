@@ -3,12 +3,11 @@ import { Route, Routes } from 'react-router-dom'
 
 import { PrivateRoute } from 'lib/router'
 import { useRxState } from 'lib/rx-store-react'
-
-import { Path } from 'models/path'
+import { Path } from 'lib/models'
 
 import { Spinner } from 'components/spinner'
 
-import { isNotUnauthorized$ } from 'store'
+import { isNotUnauthorized$ } from 'app-store'
 
 const FeedPage = lazy(() => import('pages/feed'))
 const NotMachPage = lazy(() => import('pages/not-match'))

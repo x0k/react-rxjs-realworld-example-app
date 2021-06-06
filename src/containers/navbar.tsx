@@ -2,15 +2,14 @@ import React, { useMemo } from 'react'
 
 import { foldState } from 'lib/state'
 import { useRxState } from 'lib/rx-store-react'
-
-import { getProfilePath, Path } from 'models/path'
+import { getProfilePath, Path } from 'lib/models'
+import { UserStates, UserStatus } from 'lib/app-store'
 
 import { NavBar } from 'components/navbar'
 import { NavItem } from 'components/nav-item'
 import { NavLink } from 'components/nav-link'
 
-import { user } from 'store'
-import { UserStates, UserStatus } from 'store/user'
+import { user } from 'app-store'
 
 const foldUserState = foldState<UserStatus, UserStates, JSX.Element | null>({
   [UserStatus.Unknown]: () => null,

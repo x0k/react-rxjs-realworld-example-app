@@ -5,12 +5,12 @@ import { DefaultApi, TagsResponse } from 'lib/conduit-client'
 import { isSpecificState } from 'lib/state'
 import { createRxStateFactory, StateHandlers, StateOptions } from 'lib/rx-store'
 
-import { GenericAjaxError } from 'models/errors'
+import { GenericAjaxError } from 'lib/models'
 import {
   catchGenericAjaxErrorForLoadableData,
   LoadableDataStates,
   LoadableDataStatus,
-} from 'models/loadable-data'
+} from 'lib/models'
 
 export type Tag = string
 

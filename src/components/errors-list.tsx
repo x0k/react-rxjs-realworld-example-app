@@ -1,7 +1,6 @@
 import React, { FunctionComponent } from 'react'
 
-import { Errors } from 'models/errors'
-
+import { Errors } from 'lib/models'
 export interface ErrorsListProps {
   errors: Errors
 }

@@ -2,11 +2,10 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 
 import { RxRouter } from 'lib/router'
-import { history } from 'lib/history'
-
-import { navigation } from 'store'
 
 import { App } from './app'
+import { navigation } from './app-store'
+import { history } from './browser-history'
 
 ReactDOM.render(
   <React.StrictMode>

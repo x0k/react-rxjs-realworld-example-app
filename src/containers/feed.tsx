@@ -3,13 +3,13 @@ import React from 'react'
 import { Article } from 'lib/conduit-client'
 import { createStopSignalHooks } from 'lib/rx-store'
 import { useRxState } from 'lib/rx-store-react'
+import { feedPerPage } from 'lib/app-store'
 
 import { ErrorsList } from 'components/errors-list'
 import { Pagination } from 'components/pagination'
 import { ArticlesList } from 'components/articles-list'
 
-import { feed, feedPage } from 'store'
-import { feedPerPage } from 'store/feed'
+import { feed, feedPage } from 'app-store'
 
 export interface FeedContainerProps {
   children: (article: Article) => JSX.Element

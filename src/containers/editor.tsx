@@ -2,8 +2,7 @@ import React, { KeyboardEvent } from 'react'
 
 import { createFieldChangeHandlers, createFormSubmitHandler } from 'lib/event'
 import { useRxState, useSignalsHooks } from 'lib/rx-store-react'
-
-import { ArticleSlug } from 'models/article'
+import { ArticleSlug } from 'lib/models'
 
 import { ErrorsList } from 'components/errors-list'
 import { Form } from 'components/form'
@@ -15,7 +14,7 @@ import { Tag } from 'components/tag'
 import { Button, ButtonSize, ButtonVariant } from 'components/button'
 import { FormGroup } from 'components/form-group'
 
-import { editor } from 'store'
+import { editor } from 'app-store'
 
 const [onTitleChange, onDescriptionChange, onBodyChange, onTagChange] =
   createFieldChangeHandlers(

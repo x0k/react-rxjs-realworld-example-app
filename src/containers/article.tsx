@@ -3,12 +3,10 @@ import React, { useMemo } from 'react'
 import { Article } from 'lib/conduit-client'
 import { foldState } from 'lib/state'
 import { useSignalsHooks, useRxState } from 'lib/rx-store-react'
+import { LoadableDataStatus, ArticleSlug } from 'lib/models'
+import { ArticleStates } from 'lib/app-store'
 
-import { LoadableDataStatus } from 'models/loadable-data'
-import { ArticleSlug } from 'models/article'
-
-import { article } from 'store'
-import { ArticleStates } from 'store/article'
+import { article } from 'app-store'
 
 export interface ArticleContainerProps {
   slug: ArticleSlug

@@ -15,7 +15,7 @@ import {
 import {
   createGenericAjaxErrorCatcherForReLoadableData,
   ReLoadableData,
-} from 'models/re-loadable-data'
+} from 'lib/models'
 
 import { UserStatus, UserStates } from './user'
 

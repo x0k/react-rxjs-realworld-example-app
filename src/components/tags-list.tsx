@@ -1,7 +1,7 @@
 import React, { ElementType } from 'react'
 import clsx from 'clsx'
 
-import { AsProp, ClassNameProp } from 'models/props'
+import { AsProp, ClassNameProp } from 'lib/props'
 
 export type TagsListProps<E extends ElementType> = ClassNameProp & AsProp<E>
 

@@ -1,13 +1,12 @@
 import React from 'react'
 
 import { useRxState } from 'lib/rx-store-react'
-
-import { APP_NAME } from 'models/app'
+import { APP_NAME } from 'lib/models'
 
 import { Banner } from 'components/banner'
 import { Container } from 'components/container'
 
-import { isNotUnauthorized$ } from 'store'
+import { isNotUnauthorized$ } from 'app-store'
 
 export function BannerContainer() {
   const isNotUnauthorized = useRxState(isNotUnauthorized$)

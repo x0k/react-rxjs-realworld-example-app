@@ -22,8 +22,8 @@ import {
 import {
   createGenericAjaxErrorCatcherForReLoadableData,
   ReLoadableData,
-} from 'models/re-loadable-data'
-import { Path } from 'models/path'
+} from 'lib/models'
+import { Path } from 'lib/models'
 
 import { NavigateEventPayload } from './navigation'
 

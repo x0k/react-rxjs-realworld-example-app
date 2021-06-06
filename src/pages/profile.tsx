@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 
-import { ProfileFeedByType } from 'models/feed'
+import { ProfileFeedByType } from 'lib/models'
 
 import { Container } from 'components/container'
 import { Row } from 'components/row'

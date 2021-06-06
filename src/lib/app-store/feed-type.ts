@@ -3,8 +3,8 @@ import { distinctUntilChanged } from 'rxjs/operators'
 import { SelectState, State } from 'lib/state'
 import { createRxStateFactory, StateOptions } from 'lib/rx-store'
 
-import { ProfileUsername } from 'models/profile'
-import { FeedType } from 'models/feed'
+import { ProfileUsername } from 'lib/models'
+import { FeedType } from 'lib/models'
 
 import { Tag } from './tags'
 

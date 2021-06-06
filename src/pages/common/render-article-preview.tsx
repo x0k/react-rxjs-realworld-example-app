@@ -2,8 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 
 import { Article } from 'lib/conduit-client'
-
-import { getArticlePath } from 'models/path'
+import { getArticlePath } from 'lib/models'
 
 import { ArticlePreview } from 'components/article-preview'
 import { Tag } from 'components/tag'

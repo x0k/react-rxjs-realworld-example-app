@@ -5,7 +5,7 @@ import { Article } from 'lib/conduit-client'
 import { ArticleMeta } from 'components/article-meta'
 import { Button, ButtonVariant } from 'components/button'
 
-import { feed } from 'store'
+import { feed } from 'app-store'
 
 export interface ArticleMetaContainerProps {
   article: Article

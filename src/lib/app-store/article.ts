@@ -24,9 +24,9 @@ import {
   catchGenericAjaxErrorForLoadableData,
   LoadableDataStates,
   LoadableDataStatus,
-} from 'models/loadable-data'
-import { GenericAjaxError } from 'models/errors'
-import { ArticleSlug } from 'models/article'
+} from 'lib/models'
+import { GenericAjaxError } from 'lib/models'
+import { ArticleSlug } from 'lib/models'
 
 import { UserStates, UserStatus } from './user'
 

@@ -11,7 +11,7 @@ import { TextField } from 'components/text-field'
 import { Button, ButtonSize, ButtonVariant } from 'components/button'
 import { FormControlSize } from 'components/form-control'
 
-import { settings } from 'store'
+import { settings } from 'app-store'
 
 const [
   onImageChange,
