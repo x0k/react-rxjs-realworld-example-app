@@ -15,11 +15,11 @@ import {
   FavoritesApi,
   MultipleArticlesResponse,
 } from 'lib/conduit-client'
-import { Store } from 'lib/store'
 import {
-  ObservableOf,
-  SignalsOf,
   createRxStateFactory,
+  StateOptions,
+  StateSignals,
+  StateHandlers,
 } from 'lib/rx-store'
 
 import {
@@ -51,27 +51,22 @@ export type FeedSources = {
   feedPage: number
 }
 
-export type FeedSignals = SignalsOf<{
+export type FeedSignals = {
   setFeedType: FeedTypeStates
-}>
+}
 
-export const createFeed = createRxStateFactory<
-  FeedState,
-  FeedEvents & FeedSources,
-  [FeedSignals, ArticlesApi, FavoritesApi]
->(
+export const createFeed = createRxStateFactory(
   (
-    store: Store<FeedState>,
     {
-      feedPage$,
-      feedType$,
-      stop$,
-      toggleFavorite$,
-    }: ObservableOf<FeedEvents & FeedSources>,
-    { setFeedType }: FeedSignals,
+      events: { stop$, toggleFavorite$ },
+      signals: { setFeedType },
+      sources: { feedPage$, feedType$ },
+      store,
+    }: StateOptions<FeedState, FeedEvents, FeedSources> &
+      StateSignals<FeedSignals>,
     api: ArticlesApi,
     favoriteApi: FavoritesApi
-  ) => {
+  ): StateHandlers<FeedState> => {
     const catchGenericAjaxError =
       createGenericAjaxErrorCatcherForReLoadableData(store)
     const knownFeedType$ = filter<FeedTypeStates>(

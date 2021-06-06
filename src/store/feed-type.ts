@@ -1,7 +1,7 @@
 import { distinctUntilChanged } from 'rxjs/operators'
 
 import { SelectState, State } from 'lib/state'
-import { createRxStateFactory } from 'lib/rx-store'
+import { createRxStateFactory, StateOptions } from 'lib/rx-store'
 
 import { ProfileUsername } from 'models/profile'
 import { FeedType } from 'models/feed'
@@ -46,7 +46,9 @@ export type FeedTypeEvents = {
   set: FeedTypeStates
 }
 
-export const createFeedType = createRxStateFactory<
-  FeedTypeStates,
-  FeedTypeEvents
->((store, { set$ }) => [set$, distinctUntilChanged(compareFeedState)])
+export const createFeedType = createRxStateFactory(
+  ({ events: { set$ } }: StateOptions<FeedTypeStates, FeedTypeEvents>) => [
+    set$,
+    distinctUntilChanged(compareFeedState),
+  ]
+)

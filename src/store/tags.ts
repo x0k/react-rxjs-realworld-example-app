@@ -3,7 +3,7 @@ import { filter, map, mapTo, switchMap, takeUntil } from 'rxjs/operators'
 
 import { DefaultApi, TagsResponse } from 'lib/conduit-client'
 import { isSpecificState } from 'lib/state'
-import { createRxStateFactory } from 'lib/rx-store'
+import { createRxStateFactory, StateHandlers, StateOptions } from 'lib/rx-store'
 
 import { GenericAjaxError } from 'models/errors'
 import {
@@ -23,8 +23,11 @@ export type TagsEvents = {
   stop: unknown
 }
 
-export const createTags = createRxStateFactory<TagsStates, TagsEvents, [DefaultApi]>(
-  (store, { load$, stop$ }, api) => [
+export const createTags = createRxStateFactory(
+  (
+    { store, events: { load$, stop$ } }: StateOptions<TagsStates, TagsEvents>,
+    api: DefaultApi
+  ): StateHandlers<TagsStates> => [
     merge(
       load$.pipe(
         map(() => store.state),

@@ -12,7 +12,12 @@ import { Update } from 'history'
 import { NewUser, User, UserAndAuthenticationApi } from 'lib/conduit-client'
 import { ChangeFieldEventPayload } from 'lib/event'
 import { isLocationWithFromState } from 'lib/router'
-import { SignalsOf, createRxStateFactory } from 'lib/rx-store'
+import {
+  createRxStateFactory,
+  StateOptions,
+  StateSignals,
+  StateHandlers,
+} from 'lib/rx-store'
 
 import {
   createGenericAjaxErrorCatcherForReLoadableData,
@@ -42,22 +47,26 @@ export type RegistrationSources = {
   navigate: Update
 }
 
-export type RegistrationSignals = SignalsOf<{
+export type RegistrationSignals = {
   setUser: User
   navigate: NavigateEventPayload
-}>
+}
 
-export const createRegistration = createRxStateFactory<
-  RegistrationState,
-  RegistrationEvents & RegistrationSources,
-  [RegistrationSignals, UserAndAuthenticationApi]
->(
+export const createRegistration = createRxStateFactory(
   (
-    store,
-    { changeField$, signUp$, stop$, navigate$ },
-    { navigate, setUser },
-    api
-  ) => {
+    {
+      events: { changeField$, signUp$, stop$ },
+      signals: { navigate, setUser },
+      sources: { navigate$ },
+      store,
+    }: StateOptions<
+      RegistrationState,
+      RegistrationEvents,
+      RegistrationSources
+    > &
+      StateSignals<RegistrationSignals>,
+    api: UserAndAuthenticationApi
+  ): StateHandlers<RegistrationState> => {
     const catchGenericAjaxError =
       createGenericAjaxErrorCatcherForReLoadableData(store)
     return [

@@ -18,7 +18,12 @@ import {
 import { partiallyFoldState, State } from 'lib/state'
 import { ChangeFieldEventPayload } from 'lib/event'
 import { isTruly } from 'lib/types'
-import { SignalsOf, createRxStateFactory } from 'lib/rx-store'
+import {
+  createRxStateFactory,
+  StateOptions,
+  StateSignals,
+  StateHandlers,
+} from 'lib/rx-store'
 
 import { getArticlePath } from 'models/path'
 import { ArticleTag, ArticleSlug } from 'models/article'
@@ -65,21 +70,26 @@ export type EditorEvents = {
   publish: unknown
 }
 
-export type EditorSignals = SignalsOf<{
+export type EditorSignals = {
   navigate: NavigateEventPayload
-}>
+}
 
-export const createEditor = createRxStateFactory<
-  EditorState,
-  EditorEvents,
-  [EditorSignals, ArticlesApi]
->(
+export const createEditor = createRxStateFactory(
   (
-    store,
-    { addTag$, changeField$, loadArticle$, publish$, removeTag$, stop$ },
-    { navigate },
-    api
-  ) => {
+    {
+      events: {
+        addTag$,
+        changeField$,
+        loadArticle$,
+        publish$,
+        removeTag$,
+        stop$,
+      },
+      signals: { navigate },
+      store,
+    }: StateOptions<EditorState, EditorEvents> & StateSignals<EditorSignals>,
+    api: ArticlesApi
+  ): StateHandlers<EditorState> => {
     const catchGenericAjaxError =
       createGenericAjaxErrorCatcherForReLoadableData(store)
     const handleEditorPublish = partiallyFoldState<

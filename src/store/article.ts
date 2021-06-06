@@ -18,7 +18,7 @@ import {
   SingleArticleResponse,
 } from 'lib/conduit-client'
 import { isSpecificState } from 'lib/state'
-import { createRxStateFactory } from 'lib/rx-store'
+import { createRxStateFactory, StateHandlers, StateOptions } from 'lib/rx-store'
 
 import {
   catchGenericAjaxErrorForLoadableData,
@@ -51,18 +51,16 @@ export type ArticleEvents = {
   toggleFavorite: unknown
 }
 
-export const createArticle = createRxStateFactory<
-  ArticleStates,
-  ArticleEvents,
-  [ArticlesApi, ProfileApi, FavoritesApi]
->(
+export const createArticle = createRxStateFactory(
   (
-    store,
-    { delete$, load$, stop$, toggleFavorite$, toggleFollow$ },
-    api,
-    profileApi,
-    favoriteApi
-  ) => [
+    {
+      events: { delete$, load$, stop$, toggleFavorite$, toggleFollow$ },
+      store,
+    }: StateOptions<ArticleStates, ArticleEvents>,
+    api: ArticlesApi,
+    profileApi: ProfileApi,
+    favoriteApi: FavoritesApi
+  ): StateHandlers<ArticleStates> => [
     merge(
       load$.pipe(mapTo({ type: LoadableDataStatus.Loading })),
       load$.pipe(
