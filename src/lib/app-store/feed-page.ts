@@ -15,12 +15,10 @@ export type FeedPageSources = {
 
 export const createFeedPage = createRxStateFactory(
   ({
-    events: { set$ },
-    sources: { feedType$ },
+    events: { set$, feedType$ },
   }: StateOptions<
     number,
-    FeedPageEvents,
-    FeedPageSources
+    FeedPageEvents & FeedPageSources
   >): StateHandlers<number> => [
     merge(set$, feedType$.pipe(mapTo(1))),
     distinctUntilChanged(),

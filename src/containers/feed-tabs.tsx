@@ -8,15 +8,15 @@ import { NavItem } from 'components/nav-item'
 import { NavLink } from 'components/nav-link'
 import { Tabs } from 'components/tabs'
 
-import { feedType, isNotUnauthorized$ } from 'app-store'
+import { feedType$, feedTypeSubjects, isNotUnauthorized$ } from 'app-store'
 
 const onSetYourFeed = () =>
-  feedType.set({
+  feedTypeSubjects.set$.next({
     type: FeedType.Your,
   })
 
 const onSetGlobalFeed = () =>
-  feedType.set({
+  feedTypeSubjects.set$.next({
     type: FeedType.Global,
   })
 
@@ -36,8 +36,8 @@ export function FeedTabsContainer({ type, tag }: FeedTabsContainerProps) {
         : { type: isNotUnauthorized ? FeedType.Your : FeedType.Global },
     [type, tag, isNotUnauthorized]
   )
-  const hooks = useStartSignalHooks(feedType.set, payload)
-  const state = useRxState(feedType.state$, hooks)
+  const hooks = useStartSignalHooks(feedTypeSubjects.set$, payload)
+  const state = useRxState(feedType$, hooks)
   return (
     <Tabs>
       {isNotUnauthorized && (

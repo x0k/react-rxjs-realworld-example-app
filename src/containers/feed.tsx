@@ -9,7 +9,7 @@ import { ErrorsList } from 'components/errors-list'
 import { Pagination } from 'components/pagination'
 import { ArticlesList } from 'components/articles-list'
 
-import { feed, feedPage } from 'app-store'
+import { feed$, feedPage$, feedPageSubjects, feedSubjects } from 'app-store'
 
 export interface FeedContainerProps {
   children: (article: Article) => JSX.Element
@@ -17,14 +17,11 @@ export interface FeedContainerProps {
 
 const topMarginStyle = { marginTop: 1 }
 
-const hooks = createStopSignalHooks(feed.stop)
+const hooks = createStopSignalHooks(feedSubjects.stop$)
 
 export function FeedContainer({ children }: FeedContainerProps) {
-  const page = useRxState(feedPage.state$)
-  const { errors, articles, articlesCount, loading } = useRxState(
-    feed.state$,
-    hooks
-  )
+  const page = useRxState(feedPage$)
+  const { errors, articles, articlesCount, loading } = useRxState(feed$, hooks)
   if (Object.keys(errors).length > 0) {
     return <ErrorsList errors={errors} />
   }
@@ -45,7 +42,7 @@ export function FeedContainer({ children }: FeedContainerProps) {
         count={articlesCount}
         current={page}
         perPage={feedPerPage}
-        onClick={feedPage.set}
+        onClick={(value) => feedPageSubjects.set$.next(value)}
       />
     </>
   )

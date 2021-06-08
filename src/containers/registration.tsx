@@ -9,23 +9,23 @@ import { Form } from 'components/form'
 import { InputField } from 'components/input-field'
 import { ErrorsList } from 'components/errors-list'
 
-import { registration } from 'app-store'
+import { registration$, registrationSubjects } from 'app-store'
 
 const [onUsernameChange, onEmailChange, onPasswordChange] =
   createFieldChangeHandlers(
-    registration.changeField,
+    registrationSubjects.changeField$,
     'username',
     'email',
     'password'
   )
 
-const submitHandler = createFormSubmitHandler(registration.signUp)
+const submitHandler = createFormSubmitHandler(registrationSubjects.signUp$)
 
-const hooks = createStopSignalHooks(registration.stop)
+const hooks = createStopSignalHooks(registrationSubjects.stop$)
 
 export function RegistrationContainer() {
   const { email, errors, loading, password, username } = useRxState(
-    registration.state$,
+    registration$,
     hooks
   )
   return (

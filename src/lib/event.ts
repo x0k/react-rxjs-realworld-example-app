@@ -1,6 +1,5 @@
 import { ChangeEvent, FormEvent } from 'react'
-
-import { HookAction, VoidHookAction } from 'lib/rx-store'
+import { Subject } from 'rxjs'
 
 export interface ChangeFieldEventPayload<T, F extends keyof T = keyof T> {
   field: F
@@ -8,19 +7,19 @@ export interface ChangeFieldEventPayload<T, F extends keyof T = keyof T> {
 }
 
 export function createFieldChangeHandlers<T>(
-  event: HookAction<ChangeFieldEventPayload<T>>,
+  event: Subject<ChangeFieldEventPayload<T>>,
   ...fields: ReadonlyArray<keyof T>
 ) {
   return fields.map(
     (field) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       //@ts-expect-error
-      event({ field, value: e.target.value })
+      event.next({ field, value: e.target.value })
   )
 }
 
-export function createFormSubmitHandler(event: VoidHookAction) {
+export function createFormSubmitHandler(event: Subject<unknown>) {
   return (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    event(undefined)
+    event.next()
   }
 }

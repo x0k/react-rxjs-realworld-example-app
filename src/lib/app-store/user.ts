@@ -9,12 +9,7 @@ import {
 } from 'lib/conduit-client'
 import { isNull, isPresent } from 'lib/types'
 import { State } from 'lib/state'
-import {
-  StateOptions,
-  StateSignals,
-  injectStore,
-  createRxStateFactory,
-} from 'lib/rx-store'
+import { StateOptions, injectStore, createRxStateFactory } from 'lib/rx-store'
 import { GenericAjaxError, Path } from 'lib/models'
 
 import { AccessToken } from './token'
@@ -70,12 +65,10 @@ export type UserSignals = {
 export const createUser = createRxStateFactory(
   (
     {
-      events: { logIn$, logOut$, set$ },
-      sources: { token$ },
-      signals: { navigate, setToken },
+      events: { logIn$, logOut$, set$, token$ },
+      signals: { navigate$, setToken$ },
       store,
-    }: StateOptions<UserStates, UserEvents, UserSources> &
-      StateSignals<UserSignals>,
+    }: StateOptions<UserStates, UserEvents & UserSources, UserSignals>,
     api: UserAndAuthenticationApi
   ) => [
     merge<UserStates>(
@@ -85,7 +78,7 @@ export const createUser = createRxStateFactory(
         userResponseToState
       ),
       logOut$.pipe(
-        tap(() => navigate(Path.Feed)),
+        tap(() => navigate$.next(Path.Feed)),
         mapTo({ type: UserStatus.Unauthorized })
       ),
       set$.pipe(map((user) => ({ type: UserStatus.Authorized, user }))),
@@ -105,9 +98,9 @@ export const createUser = createRxStateFactory(
     ),
     tap<UserStates>((state) => {
       if (state.type === UserStatus.Authorized) {
-        setToken(state.user.token)
+        setToken$.next(state.user.token)
       } else if (state.type === UserStatus.Unauthorized) {
-        setToken(null)
+        setToken$.next(null)
       }
     }),
   ]

@@ -9,7 +9,7 @@ import { TagsStates } from 'lib/app-store'
 import { TagsList } from 'components/tags-list'
 import { Tag } from 'components/tag'
 
-import { tags } from 'app-store'
+import { tags$, tagsSubjects } from 'app-store'
 
 const foldTagsState = foldState<
   LoadableDataStatus,
@@ -30,9 +30,12 @@ const foldTagsState = foldState<
   [LoadableDataStatus.Error]: ({ error }) => <p>{error.message}</p>,
 })
 
-const hooks = createSignalsHooks({ start: tags.load, stop: tags.stop })
+const hooks = createSignalsHooks({
+  start: tagsSubjects.load$,
+  stop: tagsSubjects.stop$,
+})
 
 export function TagsContainer() {
-  const tagsState = useRxState(tags.state$, hooks)
+  const tagsState = useRxState(tags$, hooks)
   return foldTagsState(tagsState)
 }

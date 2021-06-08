@@ -13,7 +13,7 @@ import { Tabs } from 'components/tabs'
 import { NavItem } from 'components/nav-item'
 import { NavLink } from 'components/nav-link'
 
-import { feedType } from 'app-store'
+import { feedType$, feedTypeSubjects } from 'app-store'
 
 export interface ProfileTabsContainerProps {
   username: ProfileUsername
@@ -31,14 +31,14 @@ export function ProfileTabsContainer({
         : { type: FeedType.ByAuthor, author: username },
     [username, type]
   )
-  const hooks = useStartSignalHooks(feedType.set, payload)
-  const state = useRxState(feedType.state$, hooks)
+  const hooks = useStartSignalHooks(feedTypeSubjects.set$, payload)
+  const state = useRxState(feedType$, hooks)
   const onMyArticles = useCallback(
-    () => feedType.set({ type: FeedType.ByAuthor, author: username }),
+    () => feedTypeSubjects.set$.next({ type: FeedType.ByAuthor, author: username }),
     [username]
   )
   const onFavorites = useCallback(
-    () => feedType.set({ type: FeedType.Favorite, favorited: username }),
+    () => feedTypeSubjects.set$.next({ type: FeedType.Favorite, favorited: username }),
     [username]
   )
   return (

@@ -14,11 +14,11 @@ import { Tag } from 'components/tag'
 import { Button, ButtonSize, ButtonVariant } from 'components/button'
 import { FormGroup } from 'components/form-group'
 
-import { editor } from 'app-store'
+import { editor$, editorSubjects } from 'app-store'
 
 const [onTitleChange, onDescriptionChange, onBodyChange, onTagChange] =
   createFieldChangeHandlers(
-    editor.changeField,
+    editorSubjects.changeField$,
     'title',
     'description',
     'body',
@@ -28,18 +28,22 @@ const [onTitleChange, onDescriptionChange, onBodyChange, onTagChange] =
 const onTagKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
   if (e.key === 'Enter') {
     e.preventDefault()
-    editor.addTag(undefined)
+    editorSubjects.addTag$.next()
   }
 }
 
-const submitHandler = createFormSubmitHandler(editor.publish)
+const submitHandler = createFormSubmitHandler(editorSubjects.publish$)
 
 export interface EditorContainerProps {
   slug?: ArticleSlug
 }
 
 export function EditorContainer({ slug }: EditorContainerProps) {
-  const hooks = useSignalsHooks(editor.loadArticle, editor.stop, slug)
+  const hooks = useSignalsHooks(
+    editorSubjects.loadArticle$,
+    editorSubjects.stop$,
+    slug
+  )
   const {
     errors,
     loading,
@@ -48,7 +52,7 @@ export function EditorContainer({ slug }: EditorContainerProps) {
     description,
     title,
     tagList = [],
-  } = useRxState(editor.state$, hooks)
+  } = useRxState(editor$, hooks)
   return (
     <>
       {Object.keys(errors).length > 0 && <ErrorsList errors={errors} />}
@@ -90,7 +94,7 @@ export function EditorContainer({ slug }: EditorContainerProps) {
             {tagList.map((tag) => (
               <Tag as="span" key={tag}>
                 <i
-                  onClick={() => editor.removeTag(tag)}
+                  onClick={() => editorSubjects.removeTag$.next(tag)}
                   className="ion-close-round"
                 />
                 &nbsp;

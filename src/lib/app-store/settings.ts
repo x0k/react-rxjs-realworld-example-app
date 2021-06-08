@@ -5,12 +5,7 @@ import { UpdateUser, User, UserAndAuthenticationApi } from 'lib/conduit-client'
 import { ChangeFieldEventPayload } from 'lib/event'
 import { isSpecificState } from 'lib/state'
 import { omitFalsyProps } from 'lib/types'
-import {
-  createRxStateFactory,
-  StateOptions,
-  StateSignals,
-  StateHandlers,
-} from 'lib/rx-store'
+import { createRxStateFactory, StateOptions, StateHandlers } from 'lib/rx-store'
 import {
   createGenericAjaxErrorCatcherForReLoadableData,
   ReLoadableData,
@@ -45,12 +40,14 @@ export type SettingsSignals = {
 export const createSettings = createRxStateFactory(
   (
     {
-      events: { changeField$, stop$, update$ },
-      signals: { setUser },
-      sources: { user$ },
+      events: { changeField$, stop$, update$, user$ },
+      signals: { setUser$ },
       store,
-    }: StateOptions<SettingsState, SettingsEvents, SettingsSources> &
-      StateSignals<SettingsSignals>,
+    }: StateOptions<
+      SettingsState,
+      SettingsEvents & SettingsSources,
+      SettingsSignals
+    >,
     api: UserAndAuthenticationApi
   ): StateHandlers<SettingsState> => {
     const catchGenericAjaxError =
@@ -69,7 +66,7 @@ export const createSettings = createRxStateFactory(
               },
             })
           ),
-          tap(({ user }) => setUser(user)),
+          tap(({ user }) => setUser$.next(user)),
           map(() => ({ ...store.state, loading: false, errors: {} })),
           catchGenericAjaxError
         ),

@@ -2,7 +2,7 @@ import { Observable, Subscription } from 'rxjs'
 import { Update } from 'history'
 
 import { createLocalStorageStore, createMemoryStore } from 'lib/store'
-import { createRxStore, createSubjects } from 'lib/rx-store'
+import { createSubjects } from 'lib/rx-store'
 import { TOKEN_KEY, LoadableDataStatus } from 'lib/models'
 import {
   createToken,
@@ -61,17 +61,20 @@ import {
   userAndAuthenticationApi,
 } from './api'
 
-export const token = createRxStore(createToken, {
+export const tokenSubjects = createSubjects<TokenEvents>(['set'])
+
+export const token$ = createToken({
   store: createLocalStorageStore<AccessToken>(TOKEN_KEY, null),
-  events: createSubjects<TokenEvents>(['set']),
+  events: tokenSubjects,
 })
 
-export const navigation = createRxStore(
-  createNavigation,
+export const navigationSubjects = createSubjects<NavigationEvents>(['navigate'])
+
+export const navigation$ = createNavigation(
   {
     store: createMemoryStore<Update>(history),
-    events: createSubjects<NavigationEvents>(['navigate']),
-    sources: {
+    events: {
+      ...navigationSubjects,
       update$: new Observable<Update>(
         (observer) =>
           new Subscription(history.listen((state) => observer.next(state)))
@@ -81,160 +84,200 @@ export const navigation = createRxStore(
   history
 )
 
-export const user = createRxStore(
-  createUser,
+export const userSubjects = createSubjects<UserEvents>([
+  'logIn',
+  'logOut',
+  'set',
+])
+
+export const user$ = createUser(
   {
     store: createMemoryStore<UserStates>(initialUserState),
-    events: createSubjects<UserEvents>(['logIn', 'logOut', 'set']),
-    sources: {
-      token$: token.state$,
+    events: {
+      ...userSubjects,
+      token$,
     },
-    signals: { navigate: navigation.navigate, setToken: token.set },
+    signals: {
+      navigate$: navigationSubjects.navigate$,
+      setToken$: tokenSubjects.set$,
+    },
   },
   userAndAuthenticationApi
 )
 
-export const isNotUnauthorized$ = createIsNotUnauthorized(user.state$)
+export const isNotUnauthorized$ = createIsNotUnauthorized(user$)
 
-export const tags = createRxStore(
-  createTags,
+export const tagsSubjects = createSubjects<TagsEvents>(['load', 'stop'])
+
+export const tags$ = createTags(
   {
     store: createMemoryStore<TagsStates>({ type: LoadableDataStatus.Init }),
-    events: createSubjects<TagsEvents>(['load', 'stop']),
+    events: tagsSubjects,
   },
   defaultApi
 )
 
-export const feedType = createRxStore(createFeedType, {
+export const feedTypeSubjects = createSubjects<FeedTypeEvents>(['set'])
+
+export const feedType$ = createFeedType({
   store: createMemoryStore(initialFeedTypeState),
-  events: createSubjects<FeedTypeEvents>(['set']),
+  events: feedTypeSubjects,
 })
 
-export const feedPage = createRxStore(createFeedPage, {
+export const feedPageSubjects = createSubjects<FeedPageEvents>(['set'])
+
+export const feedPage$ = createFeedPage({
   store: createMemoryStore(1),
-  events: createSubjects<FeedPageEvents>(['set']),
-  sources: { feedType$: feedType.state$ },
+  events: { ...feedPageSubjects, feedType$ },
 })
 
-export const feed = createRxStore(
-  createFeed,
+export const feedSubjects = createSubjects<FeedEvents>([
+  'stop',
+  'toggleFavorite',
+])
+
+export const feed$ = createFeed(
   {
     store: createMemoryStore(initialFeedState),
-    events: createSubjects<FeedEvents>(['stop', 'toggleFavorite']),
-    sources: {
-      feedPage$: feedPage.state$,
-      feedType$: feedType.state$,
+    events: {
+      ...feedSubjects,
+      feedPage$,
+      feedType$,
     },
-    signals: { setFeedType: feedType.set },
+    signals: { setFeedType$: feedTypeSubjects.set$ },
   },
   articleApi,
   favoriteApi
 )
 
-export const auth = createRxStore(
-  createAuth,
+export const authSubjects = createSubjects<AuthEvents>([
+  'changeField',
+  'signIn',
+  'stop',
+])
+
+export const auth$ = createAuth(
   {
     store: createMemoryStore(initialAuthState),
-    events: createSubjects<AuthEvents>(['changeField', 'signIn', 'stop']),
-    sources: {
-      navigate$: navigation.state$,
+    events: {
+      ...authSubjects,
+      navigation$,
     },
-    signals: { navigate: navigation.navigate, setUser: user.set },
+    signals: {
+      navigate$: navigationSubjects.navigate$,
+      setUser$: userSubjects.set$,
+    },
   },
   userAndAuthenticationApi
 )
 
-export const registration = createRxStore(
-  createRegistration,
+export const registrationSubjects = createSubjects<RegistrationEvents>([
+  'changeField',
+  'signUp',
+  'stop',
+])
+
+export const registration$ = createRegistration(
   {
     store: createMemoryStore(initialRegistrationState),
-    events: createSubjects<RegistrationEvents>([
-      'changeField',
-      'signUp',
-      'stop',
-    ]),
-    sources: {
-      navigate$: navigation.state$,
+    events: {
+      ...registrationSubjects,
+      navigation$,
     },
-    signals: { navigate: navigation.navigate, setUser: user.set },
+    signals: {
+      navigate$: navigationSubjects.navigate$,
+      setUser$: userSubjects.set$,
+    },
   },
   userAndAuthenticationApi
 )
 
-export const profile = createRxStore(
-  createProfile,
+export const profileSubjects = createSubjects<ProfileEvents>([
+  'load',
+  'stop',
+  'toggleFollowing',
+])
+
+export const profile$ = createProfile(
   {
     store: createMemoryStore<ProfileStates>({
       type: LoadableDataStatus.Init,
     }),
-    events: createSubjects<ProfileEvents>(['load', 'stop', 'toggleFollowing']),
-    sources: { user$: user.state$ },
+    events: { ...profileSubjects, user$ },
   },
   profileApi
 )
 
-export const isCurrentUser$ = createIsCurrentUser(profile.state$, user.state$)
+export const isCurrentUser$ = createIsCurrentUser(profile$, user$)
 
-export const settings = createRxStore(
-  createSettings,
+export const settingsSubjects = createSubjects<SettingsEvents>([
+  'changeField',
+  'stop',
+  'update',
+])
+
+export const settings$ = createSettings(
   {
     store: createMemoryStore(initialSettingsState),
-    events: createSubjects<SettingsEvents>(['changeField', 'stop', 'update']),
-    sources: {
-      user$: user.state$,
+    events: {
+      ...settingsSubjects,
+      user$,
     },
-    signals: { setUser: user.set },
+    signals: { setUser$: userSubjects.set$ },
   },
   userAndAuthenticationApi
 )
 
-export const editor = createRxStore(
-  createEditor,
+export const editorSubjects = createSubjects<EditorEvents>([
+  'addTag',
+  'changeField',
+  'loadArticle',
+  'publish',
+  'removeTag',
+  'stop',
+])
+
+export const editor$ = createEditor(
   {
     store: createMemoryStore(initialEditorState),
-    events: createSubjects<EditorEvents>([
-      'addTag',
-      'changeField',
-      'loadArticle',
-      'publish',
-      'removeTag',
-      'stop',
-    ]),
-    signals: navigation,
+    events: editorSubjects,
+    signals: navigationSubjects,
   },
   articleApi
 )
 
-export const article = createRxStore(
-  createArticle,
+export const articleSubjects = createSubjects<ArticleEvents>([
+  'delete',
+  'load',
+  'stop',
+  'toggleFavorite',
+  'toggleFollow',
+])
+
+export const article$ = createArticle(
   {
     store: createMemoryStore(initialArticleState),
-    events: createSubjects<ArticleEvents>([
-      'delete',
-      'load',
-      'stop',
-      'toggleFavorite',
-      'toggleFollow',
-    ]),
+    events: articleSubjects,
   },
   articleApi,
   profileApi,
   favoriteApi
 )
 
-export const isAuthor$ = createIsAuthor(article.state$, user.state$)
+export const isAuthor$ = createIsAuthor(article$, user$)
 
-export const comments = createRxStore(
-  createComments,
+export const commentsSubjects = createSubjects<CommentsEvents>([
+  'changeComment',
+  'deleteComment',
+  'postComment',
+  'load',
+  'stop',
+])
+
+export const comments$ = createComments(
   {
     store: createMemoryStore(initialCommentsState),
-    events: createSubjects<CommentsEvents>([
-      'changeComment',
-      'deleteComment',
-      'postComment',
-      'load',
-      'stop',
-    ]),
+    events: commentsSubjects,
   },
   commentsApi
 )

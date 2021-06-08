@@ -14,28 +14,32 @@ import { Button, ButtonVariant } from 'components/button'
 import { Form } from 'components/form'
 import { Textarea } from 'components/textarea'
 
-import { comments, user } from 'app-store'
+import { comments$, user$, commentsSubjects } from 'app-store'
 
 export interface CommentsContainerProps {
   article: Article
 }
 
 const onCommentChange = (e: ChangeEvent<HTMLTextAreaElement>) =>
-  comments.changeComment(e.target.value)
+  commentsSubjects.changeComment$.next(e.target.value)
 
-const onPostComment = createFormSubmitHandler(comments.postComment)
+const onPostComment = createFormSubmitHandler(commentsSubjects.postComment$)
 
 export function CommentsContainer({
   article: { slug },
 }: CommentsContainerProps) {
-  const hooks = useSignalsHooks(comments.load, comments.stop, slug)
+  const hooks = useSignalsHooks(
+    commentsSubjects.load$,
+    commentsSubjects.stop$,
+    slug
+  )
   const {
     comment,
     comments: commentsList,
     errors,
     loading,
-  } = useRxState(comments.state$, hooks)
-  const userState = useRxState(user.state$)
+  } = useRxState(comments$, hooks)
+  const userState = useRxState(user$)
   const userMatcher = useMemo(
     () => matcher<UserStatus, UserStates>(userState),
     [userState]
@@ -104,7 +108,9 @@ export function CommentsContainer({
                   userMatcher.state.user.username === author.username && (
                     <span
                       className="mod-options"
-                      onClick={() => comments.deleteComment(comment)}
+                      onClick={() =>
+                        commentsSubjects.deleteComment$.next(comment)
+                      }
                     >
                       <i className="ion-trash-a" />
                     </span>

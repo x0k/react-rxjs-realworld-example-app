@@ -12,12 +12,7 @@ import { Update } from 'history'
 import { LoginUser, User, UserAndAuthenticationApi } from 'lib/conduit-client'
 import { ChangeFieldEventPayload } from 'lib/event'
 import { isLocationWithFromState } from 'lib/router'
-import {
-  createRxStateFactory,
-  StateOptions,
-  StateSignals,
-  StateHandlers,
-} from 'lib/rx-store'
+import { createRxStateFactory, StateOptions, StateHandlers } from 'lib/rx-store'
 import {
   Path,
   createGenericAjaxErrorCatcherForReLoadableData,
@@ -42,7 +37,7 @@ export type AuthEvents = {
 }
 
 export type AuthSources = {
-  navigate: Update
+  navigation: Update
 }
 
 export type AuthSignals = {
@@ -53,12 +48,10 @@ export type AuthSignals = {
 export const createAuth = createRxStateFactory(
   (
     {
-      events: { changeField$, signIn$, stop$ },
-      signals: { navigate, setUser },
-      sources: { navigate$ },
+      events: { changeField$, signIn$, stop$, navigation$ },
+      signals: { navigate$, setUser$ },
       store,
-    }: StateOptions<AuthState, AuthEvents, AuthSources> &
-      StateSignals<AuthSignals>,
+    }: StateOptions<AuthState, AuthEvents & AuthSources, AuthSignals>,
     api: UserAndAuthenticationApi
   ): StateHandlers<AuthState> => {
     const catchGenericAjaxError =
@@ -76,10 +69,10 @@ export const createAuth = createRxStateFactory(
         ),
         signIn$.pipe(
           exhaustMap(() => api.login({ body: { user: store.state } })),
-          withLatestFrom(navigate$),
+          withLatestFrom(navigation$),
           tap(([{ user }, { location }]) => {
-            setUser(user)
-            navigate(
+            setUser$.next(user)
+            navigate$.next(
               isLocationWithFromState(location)
                 ? location.state.from
                 : Path.Feed

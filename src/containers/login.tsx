@@ -9,20 +9,20 @@ import { InputField } from 'components/input-field'
 import { Button, ButtonSize, ButtonVariant } from 'components/button'
 import { ErrorsList } from 'components/errors-list'
 
-import { auth } from 'app-store'
+import { auth$, authSubjects } from 'app-store'
 
 const [onEmailChange, onPasswordChange] = createFieldChangeHandlers(
-  auth.changeField,
+  authSubjects.changeField$,
   'email',
   'password'
 )
 
-const submitHandler = createFormSubmitHandler(auth.signIn)
+const submitHandler = createFormSubmitHandler(authSubjects.signIn$)
 
-const hooks = createStopSignalHooks(auth.stop)
+const hooks = createStopSignalHooks(authSubjects.stop$)
 
 export function LoginContainer() {
-  const { email, errors, loading, password } = useRxState(auth.state$, hooks)
+  const { email, errors, loading, password } = useRxState(auth$, hooks)
   return (
     <>
       {Object.keys(errors).length > 0 && <ErrorsList errors={errors} />}

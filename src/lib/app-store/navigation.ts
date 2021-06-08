@@ -23,9 +23,8 @@ export type NavigationSources = {
 export const createNavigation = createRxStateFactory(
   (
     {
-      events: { navigate$ },
-      sources: { update$ },
-    }: StateOptions<Update, NavigationEvents, NavigationSources>,
+      events: { navigate$, update$ },
+    }: StateOptions<Update, NavigationEvents & NavigationSources>,
     history: BrowserHistory
   ) => [
     merge(

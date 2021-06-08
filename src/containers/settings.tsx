@@ -11,7 +11,7 @@ import { TextField } from 'components/text-field'
 import { Button, ButtonSize, ButtonVariant } from 'components/button'
 import { FormControlSize } from 'components/form-control'
 
-import { settings } from 'app-store'
+import { settings$, settingsSubjects } from 'app-store'
 
 const [
   onImageChange,
@@ -20,7 +20,7 @@ const [
   onEmailChange,
   onPasswordChange,
 ] = createFieldChangeHandlers(
-  settings.changeField,
+  settingsSubjects.changeField$,
   'image',
   'username',
   'bio',
@@ -28,13 +28,13 @@ const [
   'password'
 )
 
-const submitHandler = createFormSubmitHandler(settings.update)
+const submitHandler = createFormSubmitHandler(settingsSubjects.update$)
 
-const hooks = createStopSignalHooks(settings.stop)
+const hooks = createStopSignalHooks(settingsSubjects.stop$)
 
 export function SettingsContainer() {
   const { errors, loading, bio, email, image, password, username } = useRxState(
-    settings.state$,
+    settings$,
     hooks
   )
   return (

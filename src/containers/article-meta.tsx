@@ -5,7 +5,7 @@ import { Article } from 'lib/conduit-client'
 import { ArticleMeta } from 'components/article-meta'
 import { Button, ButtonVariant } from 'components/button'
 
-import { feed } from 'app-store'
+import { feedSubjects } from 'app-store'
 
 export interface ArticleMetaContainerProps {
   article: Article
@@ -20,7 +20,7 @@ export function ArticleMetaContainer({ article }: ArticleMetaContainerProps) {
           variant={
             favorited ? ButtonVariant.Primary : ButtonVariant.OutlinePrimary
           }
-          onClick={() => feed.toggleFavorite(article)}
+          onClick={() => feedSubjects.toggleFavorite$.next(article)}
         >
           <i className="ion-heart" />
           &nbsp;{favoritesCount}

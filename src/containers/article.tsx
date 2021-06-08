@@ -6,7 +6,7 @@ import { useSignalsHooks, useRxState } from 'lib/rx-store-react'
 import { LoadableDataStatus, ArticleSlug } from 'lib/models'
 import { ArticleStates } from 'lib/app-store'
 
-import { article } from 'app-store'
+import { article$, articleSubjects } from 'app-store'
 
 export interface ArticleContainerProps {
   slug: ArticleSlug
@@ -14,8 +14,12 @@ export interface ArticleContainerProps {
 }
 
 export function ArticleContainer({ children, slug }: ArticleContainerProps) {
-  const hooks = useSignalsHooks(article.load, article.stop, slug)
-  const articleState = useRxState(article.state$, hooks)
+  const hooks = useSignalsHooks(
+    articleSubjects.load$,
+    articleSubjects.stop$,
+    slug
+  )
+  const articleState = useRxState(article$, hooks)
   return useMemo(
     () =>
       foldState<LoadableDataStatus, ArticleStates, JSX.Element | null>({

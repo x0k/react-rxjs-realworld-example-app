@@ -18,12 +18,7 @@ import {
 import { partiallyFoldState, State } from 'lib/state'
 import { ChangeFieldEventPayload } from 'lib/event'
 import { isTruly } from 'lib/types'
-import {
-  createRxStateFactory,
-  StateOptions,
-  StateSignals,
-  StateHandlers,
-} from 'lib/rx-store'
+import { createRxStateFactory, StateOptions, StateHandlers } from 'lib/rx-store'
 import {
   getArticlePath,
   ArticleTag,
@@ -85,9 +80,9 @@ export const createEditor = createRxStateFactory(
         removeTag$,
         stop$,
       },
-      signals: { navigate },
+      signals: { navigate$ },
       store,
-    }: StateOptions<EditorState, EditorEvents> & StateSignals<EditorSignals>,
+    }: StateOptions<EditorState, EditorEvents, EditorSignals>,
     api: ArticlesApi
   ): StateHandlers<EditorState> => {
     const catchGenericAjaxError =
@@ -157,7 +152,7 @@ export const createEditor = createRxStateFactory(
         publish$.pipe(
           map(() => store.state),
           switchMap(handleEditorPublish),
-          tap(({ article: { slug } }) => navigate(getArticlePath(slug))),
+          tap(({ article: { slug } }) => navigate$.next(getArticlePath(slug))),
           switchMapTo(EMPTY),
           catchGenericAjaxError
         )

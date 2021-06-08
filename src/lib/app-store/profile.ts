@@ -51,10 +51,9 @@ export type ProfileSources = { user: UserStates }
 export const createProfile = createRxStateFactory(
   (
     {
-      events: { load$, stop$, toggleFollowing$ },
-      sources: { user$ },
+      events: { load$, stop$, toggleFollowing$, user$ },
       store,
-    }: StateOptions<ProfileStates, ProfileEvents, ProfileSources>,
+    }: StateOptions<ProfileStates, ProfileEvents & ProfileSources>,
     api: ProfileApi
   ): StateHandlers<ProfileStates> => [
     merge(

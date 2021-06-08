@@ -7,7 +7,7 @@ import { Path } from 'lib/models'
 
 import { Button, ButtonSize, ButtonVariant } from 'components/button'
 
-import { article, isAuthor$ } from 'app-store'
+import { articleSubjects, isAuthor$ } from 'app-store'
 
 export interface ArticleActionsContainerProps {
   article: Article
@@ -30,7 +30,10 @@ export function ArticleActionsContainer({
         </Button>
       </Link>
       &nbsp;
-      <Button variant={ButtonVariant.OutlineDanger} onClick={article.delete}>
+      <Button
+        variant={ButtonVariant.OutlineDanger}
+        onClick={() => articleSubjects.delete$.next()}
+      >
         <i className="ion-trash-a" /> Delete Article
       </Button>
     </span>
@@ -41,7 +44,7 @@ export function ArticleActionsContainer({
         variant={
           following ? ButtonVariant.Secondary : ButtonVariant.OutlineSecondary
         }
-        onClick={article.toggleFollow}
+        onClick={() => articleSubjects.toggleFollow$.next()}
       >
         <i className="ion-plus-round" /> {following ? 'Unfollow' : 'Follow'}
         &nbsp;
@@ -53,7 +56,7 @@ export function ArticleActionsContainer({
         variant={
           favorited ? ButtonVariant.Primary : ButtonVariant.OutlinePrimary
         }
-        onClick={article.toggleFavorite}
+        onClick={() => articleSubjects.toggleFavorite$.next()}
       >
         <i className="ion-heart" /> {favorited ? 'Unfavorite' : 'Favorite'}
         &nbsp; Article ({favoritesCount})

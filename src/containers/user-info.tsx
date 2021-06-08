@@ -10,15 +10,19 @@ import { Container } from 'components/container'
 import { Row } from 'components/row'
 import { Button, ButtonVariant } from 'components/button'
 
-import { isCurrentUser$, profile } from 'app-store'
+import { isCurrentUser$, profile$, profileSubjects } from 'app-store'
 
 export interface UserInfoContainerProps {
   username: ProfileUsername
 }
 
 export function UserInfoContainer({ username }: UserInfoContainerProps) {
-  const hooks = useSignalsHooks(profile.load, profile.stop, username)
-  const profileState = useRxState(profile.state$, hooks)
+  const hooks = useSignalsHooks(
+    profileSubjects.load$,
+    profileSubjects.stop$,
+    username
+  )
+  const profileState = useRxState(profile$, hooks)
   const isCurrentUser = useRxState(isCurrentUser$)
   return foldState<LoadableDataStatus, ProfileStates, JSX.Element | null>({
     [LoadableDataStatus.Init]: () => null,
@@ -45,7 +49,9 @@ export function UserInfoContainer({ username }: UserInfoContainerProps) {
               ) : (
                 <Button
                   variant={ButtonVariant.Secondary}
-                  onClick={() => profile.toggleFollowing(username)}
+                  onClick={() =>
+                    profileSubjects.toggleFollowing$.next(username)
+                  }
                 >
                   <i className="ion-plus-round" />
                   &nbsp;{following ? 'Unfollow' : 'Follow'} {username}

@@ -15,12 +15,7 @@ import {
   FavoritesApi,
   MultipleArticlesResponse,
 } from 'lib/conduit-client'
-import {
-  createRxStateFactory,
-  StateOptions,
-  StateSignals,
-  StateHandlers,
-} from 'lib/rx-store'
+import { createRxStateFactory, StateOptions, StateHandlers } from 'lib/rx-store'
 import {
   createGenericAjaxErrorCatcherForReLoadableData,
   ReLoadableData,
@@ -57,12 +52,10 @@ export type FeedSignals = {
 export const createFeed = createRxStateFactory(
   (
     {
-      events: { stop$, toggleFavorite$ },
-      signals: { setFeedType },
-      sources: { feedPage$, feedType$ },
+      events: { stop$, toggleFavorite$, feedPage$, feedType$ },
+      signals: { setFeedType$ },
       store,
-    }: StateOptions<FeedState, FeedEvents, FeedSources> &
-      StateSignals<FeedSignals>,
+    }: StateOptions<FeedState, FeedEvents & FeedSources, FeedSignals>,
     api: ArticlesApi,
     favoriteApi: FavoritesApi
   ): StateHandlers<FeedState> => {
@@ -117,7 +110,7 @@ export const createFeed = createRxStateFactory(
         stop$.pipe(
           tap(() => {
             store.set(initialFeedState)
-            setFeedType(initialFeedTypeState)
+            setFeedType$.next(initialFeedTypeState)
           })
         )
       ),
